@@ -28,10 +28,12 @@ public class Database {
 	private Database() throws SQLException {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
-			
+	
+			String user = System.getProperty("mysql.user");
+			String pw = System.getProperty("mysql.pw");
 			this.connect = DriverManager.getConnection("jdbc:mysql://localhost/web-cat-dev?"
-					+ "user=root&"
-					+ "password=root&"
+					+ "user=" + user + "&"
+					+ "password=" + pw + "&"
 					+ "serverTimezone=UTC");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -59,7 +61,7 @@ public class Database {
 	
 	public Map<String, Integer> getFileSizes(String earlyOftenId) {
 		Map<String, Integer> fileSizes = new HashMap<String, Integer>();
-		// TODO: database operations to retrieve current file sizes
+		
 		return fileSizes;
 	}
 }

@@ -22,6 +22,6 @@ public class Driver {
 	 * @param args Command line arguments
 	 */
 	public static void main(String[] args) {
-		// No op for now
+		// no op
 	}
 }
