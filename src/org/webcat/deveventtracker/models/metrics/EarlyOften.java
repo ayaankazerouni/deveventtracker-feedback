@@ -3,12 +3,8 @@
  */
 package org.webcat.deveventtracker.models.metrics;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import org.webcat.deveventtracker.models.CurrentFileSize;
-import org.webcat.deveventtracker.models.Feedback;
 import org.webcat.deveventtracker.models.SensorData;
 
 /**
@@ -22,12 +18,11 @@ public class EarlyOften {
 	private double score;
 	private int totalEdits;
 	private int totalWeightedEdits;
-	private Feedback feedback;
-	private Map<String, CurrentFileSize> fileSizes;
 	
 	public EarlyOften() {
+		this.totalEdits = 0;
+		this.totalWeightedEdits = 0;
 		this.score = Integer.MAX_VALUE;
-		this.fileSizes = new ConcurrentHashMap<String, CurrentFileSize>();
 	}
 	
 	/**
@@ -87,38 +82,21 @@ public class EarlyOften {
 	}
 	
 	/**
-	 * @return the feedbackId
-	 */
-	public Feedback getFeedbackId() {
-		return this.feedback;
-	}
-	
-	/**
 	 * Updates this early often score based on a new batch of events.
 	 * If there are no new events, does nothing.
 	 * 
 	 * @param events The batch of events.
 	 */
-	public void updateEarlyOften(SensorData[] events) {
+	public void update(SensorData[] events, long deadline) {
 		if (events.length == 0) {
 			return;
 		}
 		
 		for (SensorData e : events) {
-			String className = e.getClassName();
-			int size = e.getCurrentSize();
 			long time = TimeUnit.MILLISECONDS.toDays(e.getTime());
-			long deadline = TimeUnit.MILLISECONDS.toDays(this.feedback.getDeadline());
-			int daysToDeadline = (int) (deadline - time);
-			
-			// If file was seen before, calculate and update edit size
-			int oldSize = 0;
-			if (this.fileSizes.containsKey(className)) {
-				CurrentFileSize current = this.fileSizes.get(className);
-				oldSize = current.getSize();
-			}
-			this.fileSizes.put(className, new CurrentFileSize(className, size, true)); // Update the last seen file size
-			int editSize = Math.abs(size - oldSize);
+			long deadlineDate = TimeUnit.MILLISECONDS.toDays(deadline);
+			int daysToDeadline = (int) (deadlineDate - time);
+			int editSize = e.getEditSize();
 			
 			// Update edit totals
 			this.totalEdits += editSize;
