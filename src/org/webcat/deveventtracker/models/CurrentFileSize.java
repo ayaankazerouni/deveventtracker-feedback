@@ -58,11 +58,4 @@ public class CurrentFileSize {
 	public boolean isDirty() {
 		return this.dirty;
 	}
-
-	/**
-	 * @param dirty the dirty to set
-	 */
-	public void setDirty() {
-		this.dirty = true;
-	}
 }
