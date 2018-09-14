@@ -5,9 +5,13 @@ package org.webcat.deveventtracker.db;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.webcat.deveventtracker.models.SensorData;
+import org.webcat.deveventtracker.models.StudentProject;
 
 /**
  * Singleton class providing restricted access to
@@ -42,10 +46,8 @@ public class Database {
 		}
 	}
 	
-	/**
-	 * Get the singleton instance, creating it if necessary.
-	 * 
-	 * @return a Database
+	/** 
+	 * @return a singleton instance of this class, creating it if necessary
 	 */
 	public static Database getInstance() {
 		if (theInstance == null) {
@@ -57,11 +59,5 @@ public class Database {
 		}
 		
 		return theInstance;
-	}
-	
-	public Map<String, Integer> getFileSizes(String earlyOftenId) {
-		Map<String, Integer> fileSizes = new HashMap<String, Integer>();
-		
-		return fileSizes;
 	}
 }
