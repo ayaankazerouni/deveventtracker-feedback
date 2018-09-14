@@ -1,14 +1,13 @@
-/**
- * 
- */
 package org.webcat.deveventtracker.models.metrics;
 
-import java.util.concurrent.TimeUnit;
-
-import org.webcat.deveventtracker.models.SensorData;
+import java.util.Map;
 
 /**
- * Handles calculation of the Early/Often index.
+ * Handles calculation of the Early/Often index and storage of intermediate
+ * states for it.
+ * 
+ * The Early/Often index is a quantification of procrastination on a software
+ * project.
  * 
  * @author Ayaan Kazerouni
  * @version 2018-09-13
@@ -18,13 +17,16 @@ public class EarlyOften {
 	private double score;
 	private int totalEdits;
 	private int totalWeightedEdits;
-	
+
+	/**
+	 * Initialises an EarlyOften object, with 0 edits.
+	 */
 	public EarlyOften() {
 		this.totalEdits = 0;
 		this.totalWeightedEdits = 0;
 		this.score = Integer.MAX_VALUE;
 	}
-	
+
 	/**
 	 * @return the id
 	 */
@@ -38,72 +40,74 @@ public class EarlyOften {
 	public void setId(String id) {
 		this.id = id;
 	}
-	
+
 	/**
 	 * @return the score
 	 */
 	public double getScore() {
 		return this.score;
 	}
-	
+
 	/**
 	 * @param score the score to set
 	 */
 	public void setScore(double score) {
 		this.score = score;
 	}
-	
+
 	/**
-	 * @return the totalEdits
+	 * @return the total number of edits
 	 */
 	public int getTotalEdits() {
 		return this.totalEdits;
 	}
-	
+
 	/**
 	 * @param totalEdits the totalEdits to set
 	 */
 	public void setTotalEdits(int totalEdits) {
 		this.totalEdits = totalEdits;
 	}
-	
+
 	/**
-	 * @return the totalWeightedEdits
+	 * Edits are weighted by time, i.e., the number of days until the assignment
+	 * deadline.
+	 * 
+	 * @see StudentProject
+	 * @return the total number of weighted edits.
 	 */
 	public int getTotalWeightedEdits() {
 		return this.totalWeightedEdits;
 	}
-	
+
 	/**
 	 * @param totalWeightedEdits the totalWeightedEdits to set
 	 */
 	public void setTotalWeightedEdits(int totalWeightedEdits) {
 		this.totalWeightedEdits = totalWeightedEdits;
 	}
-	
+
 	/**
-	 * Updates this early often score based on a new batch of events.
-	 * If there are no new events, does nothing.
+	 * Updates this early often score based on a newly processed batch of events.
 	 * 
-	 * @param events The batch of events.
+	 * @see org.webcat.deveventtracker.models.StudentProject#processBatch(SensorData[])
+	 * 		StudentProject.processBatch(SensorData[])
+	 * @param batchProcessed A map containing the information needed to update the
+	 *                       index
+	 * @throws IllegalArgumentException unless {@code batchProcessed} contains BOTH
+	 *                                  keys the following: totalEdits,
+	 *                                  totalWeightedEdits
 	 */
-	public void update(SensorData[] events, long deadline) {
-		if (events.length == 0) {
-			return;
+	public void update(Map<String, Integer> batchProcessed) {
+		if (!batchProcessed.containsKey("totalEdits") || !batchProcessed.containsKey("totalWeightedEdits")) {
+			throw new IllegalArgumentException(
+					"processedEvents must contain keys " + "totalEdits and totalWeightedEdits");
 		}
-		
-		for (SensorData e : events) {
-			long time = TimeUnit.MILLISECONDS.toDays(e.getTime());
-			long deadlineDate = TimeUnit.MILLISECONDS.toDays(deadline);
-			int daysToDeadline = (int) (deadlineDate - time);
-			int editSize = e.getEditSize();
-			
-			// Update edit totals
-			this.totalEdits += editSize;
-			this.totalWeightedEdits += (editSize * daysToDeadline);
-		}
-		
+
+		this.totalEdits += batchProcessed.get("totalEdits");
+		this.totalWeightedEdits += batchProcessed.get("totalWeightedEdits");
+
 		// Calculate new early often score
-		this.score = this.totalWeightedEdits / this.totalEdits;
+		this.score = (double) this.totalWeightedEdits / this.totalEdits;
 	}
 }
