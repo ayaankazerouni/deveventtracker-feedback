@@ -73,7 +73,7 @@ public class EarlyOften {
 	 * Edits are weighted by time, i.e., the number of days until the assignment
 	 * deadline.
 	 * 
-	 * @see StudentProject
+	 * @see org.webcat.deveventtracker.models.StudentProject StudentProject
 	 * @return the total number of weighted edits.
 	 */
 	public int getTotalWeightedEdits() {

@@ -25,8 +25,8 @@ public class StudentProject {
 	 * Initialises a project for the specified student (user) on the given
 	 * assignment.
 	 * 
-	 * @param userId
-	 * @param assignmentId
+	 * @param userId A unique identifier for the user
+	 * @param assignmentId A unique identifier for the assignment
 	 * @param deadline     The assignment due date, a timestamp in milliseconds
 	 */
 	public StudentProject(String userId, String assignmentId, long deadline) {
@@ -82,7 +82,7 @@ public class StudentProject {
 	 * deadline.
 	 * 
 	 * @param events An array of SensorData events
-	 * @return A {@code HashMap<String, Integer}> containing the keys totalEdits and
+	 * @return A {@code HashMap<String, Integer>} containing the keys totalEdits and
 	 *         totalWeightedEdits
 	 */
 	public Map<String, Integer> processBatch(SensorData[] events) {
