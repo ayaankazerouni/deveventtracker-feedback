@@ -12,16 +12,16 @@ package org.webcat.deveventtracker.controllers;
  */
 public class Driver {
 
-	/**
-	 * Entry point for the application. Calculates incremental development
-	 * feedback for the specified student project.
-	 * 
-	 * Command line arguments should include a student id and an
-	 * assignment id.
-	 * 
-	 * @param args Command line arguments
-	 */
-	public static void main(String[] args) {
-		// no op
-	}
+    /**
+     * Entry point for the application. Calculates incremental development
+     * feedback for the specified student project.
+     * 
+     * Command line arguments should include a student id and an
+     * assignment id.
+     * 
+     * @param args Command line arguments
+     */
+    public static void main(String[] args) {
+        // no op
+    }
 }
