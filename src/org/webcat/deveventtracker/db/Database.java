@@ -72,24 +72,19 @@ public class Database {
      * @param endTime The range end time, inclusive, in milliseconds
      * @return An array of {@link SensorData} objects
      */
-    public SensorData[] getEventsinTimeRange(String userId, String projectId, long startTime, long endTime) {
+    public SensorData[] getEventsInTimeRange(String userId, String projectId, long startTime, long endTime) {
         List<SensorData> events = new ArrayList<SensorData>();
 
-        String sdQuery = "select SensorData.time, " +
-        "TASSIGNMENTOFFERING.`CDUEDATE` as deadline, " +
-        "SensorData.`currentSize`, SensorDataProperty.value as 'className'" +
-        "from `SensorData`, `SensorDataProperty`, `ProjectForAssignment`, " +
-            "`ProjectForAssignmentStudent`,`TASSIGNMENTOFFERING`" +
-        "where SensorData.`projectId` = ProjectForAssignment.`OID`" +
-            "and ProjectForAssignment.`assignmentOfferingId` = TASSIGNMENTOFFERING.`OID`" +
-            "and ProjectForAssignmentStudent.`projectId` = ProjectForAssignment.`OID`" +
-            "and SensorData.`userId` = ProjectForAssignmentStudent.`studentId`" +
-            "and SensorData.`userId` = ?" +
-            "and SensorData.`projectId` = ?" +
-            "and SensorData.`OID` = SensorDataProperty.`sensorDataId`" +
-            "and SensorDataProperty.`name` = 'Class-Name'" +
-            "and SensorData.time >= ?" + 
-            "and SensorData.time <= ?;";
+        String sdQuery = "select SensorData.`time`, SensorDataProperty.value as 'className', SensorData.currentSize " +
+            "from SensorData, SensorDataProperty, StudentProject, StudentProjectForAssignment, ProjectForAssignment, TASSIGNMENTOFFERING " +
+            "where SensorData.projectId = StudentProject.OID " +
+                "and SensorDataProperty.name = 'Class-Name' " +
+                "and SensorDataProperty.sensorDataId = SensorData.OID " +
+                "and StudentProject.OID = StudentProjectForAssignment.studentProjectId " +
+                "and StudentProjectForAssignment.projectForAssignmentId = ProjectForAssignment.OID " +
+                "and ProjectForAssignment.assignmentOfferingId = TASSIGNMENTOFFERING.OID " +
+                "and SensorData.projectId = ? and SensorData.userId = ? " +
+                "and SensorData.`time` >= ? and SensorData.`time` <= ?;";
         try  {
             PreparedStatement preparedStatement = this.connect.prepareStatement(sdQuery);
             preparedStatement.setString(1, userId);
@@ -138,7 +133,7 @@ public class Database {
                 throw new IllegalArgumentException("Could not find an assignment offering for the project id " + projectId + ".");
             }
         } catch(SQLException e) {
-            System.out.println("An error occurred while getting the project deadline");
+            System.out.println("An error occurred while getting the project deadline.");
             return -1;
         }
     }
