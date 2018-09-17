@@ -62,12 +62,22 @@ public class Database {
         return theInstance;
     }
 
+    /**
+     * Gets SensorData events from within a certain time range for the give
+     * student project.
+     * 
+     * @param userId The student's ID
+     * @param projectId The student project ID
+     * @param startTime The range start time, inclusive, in milliseconds
+     * @param endTime The range end time, inclusive, in milliseconds
+     * @return An array of {@link Sensordata} objects
+     */
     public SensorData[] getEventsinTimeRange(String userId, String projectId, long startTime, long endTime) {
         List<SensorData> events = new ArrayList<SensorData>();
-        
-        String stmt = "select SensorData.userId, SensorData.projectId, " +
-            "SensorData.time,  TASSIGNMENTOFFERING.`CDUEDATE` as deadline, " +
-            "SensorData.`currentSize`, SensorDataProperty.value as 'className'" +
+
+        String sdQuery = "select SensorData.time, " +
+        "TASSIGNMENTOFFERING.`CDUEDATE` as deadline, " +
+        "SensorData.`currentSize`, SensorDataProperty.value as 'className'" +
         "from `SensorData`, `SensorDataProperty`, `ProjectForAssignment`, " +
             "`ProjectForAssignmentStudent`,`TASSIGNMENTOFFERING`" +
         "where SensorData.`projectId` = ProjectForAssignment.`OID`" +
@@ -81,16 +91,55 @@ public class Database {
             "and SensorData.time >= ?" + 
             "and SensorData.time <= ?;";
         try  {
-            PreparedStatement preparedStatement = this.connect.prepareStatement(stmt);
+            PreparedStatement preparedStatement = this.connect.prepareStatement(sdQuery);
             preparedStatement.setString(1, userId);
             preparedStatement.setString(2, projectId);
             preparedStatement.setDate(3, new Date(startTime));
             preparedStatement.setDate(4, new Date(endTime));
             ResultSet result = preparedStatement.executeQuery();
+
+            while(result.next()) {
+                long time = result.getDate("time").getTime();
+                String className = result.getString("className");
+                int currentSize = result.getInt("currentSize");
+    
+                SensorData event = new SensorData(time, currentSize, className);
+                events.add(event);
+            }
         } catch(SQLException e) {
-            System.out.println("An error occured while executing the query.");
+            System.out.println("An error occured while retrieving SensorData.");
         }
 
         return events.toArray(new SensorData[events.size()]);
+    }
+
+    /**
+     * Get the assignment deadline for a given project.
+     *
+     * @param projectId The ID of the student project
+     * @return The assignment deadline in milliseconds
+     * @throws IllegalArgumentException if an assignment was not found 
+     *      for this project 
+     */
+    public long getProjectDeadline(String projectId) {
+        String deadlineQuery = "select TASSIGNMENTOFFERING.CDUEDATE as deadline " +
+            "from SensorData, ProjectForAssignment, TASSIGNMENTOFFERING " +
+            "where SensorData.projectId = ProjectForAssignment.OID " +
+                "and ProjectForAssignment.assignmentOfferingId = TASSIGNMENTOFFERING.OID " +
+                "and projectId = ? " +
+            "limit 1;";
+        try {
+            PreparedStatement preparedStatement = this.connect.prepareStatement(deadlineQuery);
+            preparedStatement.setString(1, projectId);
+            ResultSet result = preparedStatement.executeQuery();
+            if (result.first()) {
+                return result.getDate("deadline").getTime();
+            } else {
+                throw new IllegalArgumentException("Could not find an assignment offering for the project id " + projectId + ".");
+            }
+        } catch(SQLException e) {
+            System.out.println("An error occurred while getting the project deadline");
+            return -1;
+        }
     }
 }
