@@ -63,14 +63,14 @@ public class Database {
     }
 
     /**
-     * Gets SensorData events from within a certain time range for the give
+     * Gets {@link SensorData} events from within a certain time range for the give
      * student project.
      * 
      * @param userId The student's ID
      * @param projectId The student project ID
      * @param startTime The range start time, inclusive, in milliseconds
      * @param endTime The range end time, inclusive, in milliseconds
-     * @return An array of {@link Sensordata} objects
+     * @return An array of {@link SensorData} objects
      */
     public SensorData[] getEventsinTimeRange(String userId, String projectId, long startTime, long endTime) {
         List<SensorData> events = new ArrayList<SensorData>();
