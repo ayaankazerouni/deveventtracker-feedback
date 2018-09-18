@@ -14,9 +14,7 @@ import org.webcat.deveventtracker.models.metrics.EarlyOften;
  */
 public class StudentProject {
     private String userId;
-    private String assignmentId;
-    private long deadline;
-
+    private Assignment assignment;
     private Map<String, CurrentFileSize> fileSizes;
 
     private EarlyOften earlyOften;
@@ -26,13 +24,10 @@ public class StudentProject {
      * assignment.
      * 
      * @param userId A unique identifier for the user
-     * @param assignmentId A unique identifier for the assignment
-     * @param deadline     The assignment due date, a timestamp in milliseconds
+     * @param assignment The {@link Assignment} for this student project
      */
-    public StudentProject(String userId, String assignmentId, long deadline) {
+    public StudentProject(String userId, Assignment assignment) {
         this.userId = userId;
-        this.assignmentId = assignmentId;
-        this.deadline = deadline;
         this.earlyOften = new EarlyOften();
         this.fileSizes = new HashMap<String, CurrentFileSize>();
     }
@@ -54,17 +49,10 @@ public class StudentProject {
     }
 
     /**
-     * @return the assignmentId
+     * @return the {@link Assignment} 
      */
-    public String getAssignmentId() {
-        return this.assignmentId;
-    }
-
-    /**
-     * @return the deadline
-     */
-    public long getDeadline() {
-        return this.deadline;
+    public Assignment getAssignment() {
+        return this.assignment;
     }
 
     /**
@@ -82,20 +70,27 @@ public class StudentProject {
      * deadline.
      * 
      * @param events An array of SensorData events
-     * @return A {@code HashMap<String, Integer>} containing the keys totalEdits and
-     *         totalWeightedEdits
+     * @return A {@code HashMap<String, Long>} containing the keys totalEdits,
+     *         totalWeightedEdits, and lastUpdated
+     * @see EarlyOften
      */
-    public Map<String, Integer> processBatch(SensorData[] events) {
-        HashMap<String, Integer> newBatch = new HashMap<String, Integer>();
+    public Map<String, Long> processBatch(SensorData[] events) {
+        HashMap<String, Long> newBatch = new HashMap<String, Long>();
         int totalEdits = 0;
         int totalWeightedEdits = 0;
+        long lastUpdated = this.getEarlyOften().getLastUpdated();
 
         for (SensorData event : events) {
+            // In case events are not sorted by time
+            if (event.getTime() >= lastUpdated) {
+                lastUpdated = event.getTime();
+            }
+            
             String className = event.getClassName();
             int size = event.getCurrentSize();
 
             long time = TimeUnit.MILLISECONDS.toDays(event.getTime());
-            long deadlineDate = TimeUnit.MILLISECONDS.toDays(deadline);
+            long deadlineDate = TimeUnit.MILLISECONDS.toDays(this.assignment.getDeadline());
             int daysToDeadline = (int) (deadlineDate - time);
 
             // If file was seen before, calculate and update edit size
@@ -113,8 +108,9 @@ public class StudentProject {
             this.fileSizes.put(className, new CurrentFileSize(className, size, true));
         }
 
-        newBatch.put("totalEdits", totalEdits);
-        newBatch.put("totalWeightedEdits", totalWeightedEdits);
+        newBatch.put("totalEdits", (long) totalEdits);
+        newBatch.put("totalWeightedEdits", (long) totalWeightedEdits);
+        newBatch.put("lastUpdated", lastUpdated);
         return newBatch;
     }
 

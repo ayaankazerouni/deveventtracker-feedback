@@ -17,6 +17,7 @@ public class EarlyOften {
     private double score;
     private int totalEdits;
     private int totalWeightedEdits;
+    private long lastUpdated;
 
     /**
      * Initialises an EarlyOften object, with 0 edits.
@@ -25,6 +26,7 @@ public class EarlyOften {
         this.totalEdits = 0;
         this.totalWeightedEdits = 0;
         this.score = Integer.MAX_VALUE;
+        this.lastUpdated = -1;
     }
 
     /**
@@ -88,24 +90,34 @@ public class EarlyOften {
     }
 
     /**
+     * @return The timestamp in milliseconds of the most recent {@link SensorData}
+     *         event seen by this EarlyOften object
+     */
+    public long getLastUpdated() {
+        return this.lastUpdated;
+    }
+
+    /**
      * Updates this early often score based on a newly processed batch of events.
      * 
      * @see org.webcat.deveventtracker.models.StudentProject#processBatch(SensorData[])
-     * 		StudentProject.processBatch(SensorData[])
+     *      StudentProject.processBatch(SensorData[])
      * @param batchProcessed A map containing the information needed to update the
      *                       index
      * @throws IllegalArgumentException unless {@code batchProcessed} contains BOTH
      *                                  keys the following: totalEdits,
      *                                  totalWeightedEdits
      */
-    public void update(Map<String, Integer> batchProcessed) {
-        if (!batchProcessed.containsKey("totalEdits") || !batchProcessed.containsKey("totalWeightedEdits")) {
+    public void update(Map<String, Long> batchProcessed) {
+        if (!batchProcessed.containsKey("totalEdits") || !batchProcessed.containsKey("totalWeightedEdits")
+                || !batchProcessed.containsKey("lastUpdated")) {
             throw new IllegalArgumentException(
-                    "processedEvents must contain keys " + "totalEdits and totalWeightedEdits");
+                    "processedEvents must contain keys totalEdits and totalWeightedEdits and lastUpdated");
         }
 
         this.totalEdits += batchProcessed.get("totalEdits");
         this.totalWeightedEdits += batchProcessed.get("totalWeightedEdits");
+        this.lastUpdated = batchProcessed.get("lastUpdated");
 
         // Calculate new early often score
         this.score = (double) this.totalWeightedEdits / this.totalEdits;

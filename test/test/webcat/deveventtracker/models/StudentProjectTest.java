@@ -8,6 +8,7 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.webcat.deveventtracker.models.Assignment;
 import org.webcat.deveventtracker.models.SensorData;
 import org.webcat.deveventtracker.models.StudentProject;
 import org.webcat.deveventtracker.models.metrics.EarlyOften;
@@ -26,7 +27,7 @@ public class StudentProjectTest {
 	@BeforeEach
 	public void setUp() throws Exception {
 		// Mock deadline: September 15
-		this.studentProject = new StudentProject("123", "123", 1537055940000L);
+		this.studentProject = new StudentProject("123", new Assignment("123", 1537055940000L));
 		this.events = new SensorData[] { new SensorData(1536428003000L, 300, "FirstClass"), // September 8
 				new SensorData(1536690345000L, 275, "FirstClass"), // September 11
 				new SensorData(1536610046000L, 50, "SecondClass"), // September 10
