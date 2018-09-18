@@ -1,4 +1,4 @@
-package org.webcat.deveventtracker.models;
+package main.java.webcat.deveventtracker.models;
 
 /**
  * Represents a single programming event.

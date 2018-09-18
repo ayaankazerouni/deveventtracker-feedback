@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.webcat.deveventtracker.models;
+package main.java.webcat.deveventtracker.models;
 
 /** 
  * Light representation of the TASSIGNMENTOFFERING table in the 

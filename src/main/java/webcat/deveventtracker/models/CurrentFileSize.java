@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.webcat.deveventtracker.models;
+package main.java.webcat.deveventtracker.models;
 
 /**
  * The last seen size of a file.

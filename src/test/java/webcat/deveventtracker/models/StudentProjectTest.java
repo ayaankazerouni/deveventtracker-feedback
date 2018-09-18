@@ -1,4 +1,4 @@
-package test.webcat.deveventtracker.models;
+package test.java.webcat.deveventtracker.models;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -8,10 +8,11 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.webcat.deveventtracker.models.Assignment;
-import org.webcat.deveventtracker.models.SensorData;
-import org.webcat.deveventtracker.models.StudentProject;
-import org.webcat.deveventtracker.models.metrics.EarlyOften;
+
+import main.java.webcat.deveventtracker.models.Assignment;
+import main.java.webcat.deveventtracker.models.SensorData;
+import main.java.webcat.deveventtracker.models.StudentProject;
+import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
 
 /**
  * @author Ayaan Kazerouni

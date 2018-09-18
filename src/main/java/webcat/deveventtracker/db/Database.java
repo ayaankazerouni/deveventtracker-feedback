@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.webcat.deveventtracker.db;
+package main.java.webcat.deveventtracker.db;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -12,8 +12,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.webcat.deveventtracker.models.Assignment;
-import org.webcat.deveventtracker.models.SensorData;
+import main.java.webcat.deveventtracker.models.Assignment;
+import main.java.webcat.deveventtracker.models.SensorData;
 
 /**
  * Singleton class providing restricted access to the database.

@@ -1,10 +1,10 @@
-package org.webcat.deveventtracker.models;
+package main.java.webcat.deveventtracker.models;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.webcat.deveventtracker.models.metrics.EarlyOften;
+import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
 
 /**
  * Represents an assignment state for a given student.
@@ -30,6 +30,7 @@ public class StudentProject {
         this.userId = userId;
         this.earlyOften = new EarlyOften();
         this.fileSizes = new HashMap<String, CurrentFileSize>();
+        this.assignment = assignment;
     }
 
     /**

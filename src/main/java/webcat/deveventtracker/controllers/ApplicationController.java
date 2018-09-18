@@ -1,10 +1,10 @@
 /**
  * 
  */
-package org.webcat.deveventtracker.controllers;
+package main.java.webcat.deveventtracker.controllers;
 
-import org.webcat.deveventtracker.db.Database;
-import org.webcat.deveventtracker.models.Assignment;
+import main.java.webcat.deveventtracker.db.Database;
+import main.java.webcat.deveventtracker.models.Assignment;
 
 /**
  * Main controller for the application. Triggers calculation of metrics for all
@@ -21,7 +21,7 @@ public class ApplicationController {
      * Initialises a new assignment controller. 
      * 
      * @param assignmentId A TASSIGNMENTOFFERING.OID
-     * @see org.webcat.deveventtracker.models.Assignment Assignment
+     * @see main.java.webcat.deveventtracker.models.Assignment Assignment
      */
     public ApplicationController(String assignmentId) {
         this.db = Database.getInstance();

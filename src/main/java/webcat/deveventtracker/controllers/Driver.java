@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.webcat.deveventtracker.controllers;
+package main.java.webcat.deveventtracker.controllers;
 
 /**
  * Queries the Web-CAT DB for sensordata and populates a

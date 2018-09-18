@@ -1,4 +1,4 @@
-package org.webcat.deveventtracker.models.metrics;
+package main.java.webcat.deveventtracker.models.metrics;
 
 import java.util.Map;
 
@@ -75,7 +75,7 @@ public class EarlyOften {
      * Edits are weighted by time, i.e., the number of days until the assignment
      * deadline.
      * 
-     * @see org.webcat.deveventtracker.models.StudentProject StudentProject
+     * @see main.java.webcat.deveventtracker.models.StudentProject StudentProject
      * @return the total number of weighted edits.
      */
     public int getTotalWeightedEdits() {
@@ -90,7 +90,7 @@ public class EarlyOften {
     }
 
     /**
-     * @return The timestamp in milliseconds of the most recent {@link org.webcat.deveventtracker.models.SensorData SensorData}
+     * @return The timestamp in milliseconds of the most recent {@link main.java.webcat.deveventtracker.models.SensorData SensorData}
      *         event seen by this EarlyOften object
      */
     public long getLastUpdated() {
@@ -100,7 +100,7 @@ public class EarlyOften {
     /**
      * Updates this early often score based on a newly processed batch of events.
      * 
-     * @see org.webcat.deveventtracker.models.StudentProject#processBatch(SensorData[])
+     * @see main.java.webcat.deveventtracker.models.StudentProject#processBatch(SensorData[])
      *      StudentProject.processBatch(SensorData[])
      * @param batchProcessed A map containing the information needed to update the
      *                       index
