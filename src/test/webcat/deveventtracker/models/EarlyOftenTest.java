@@ -16,7 +16,7 @@ import org.webcat.deveventtracker.models.metrics.EarlyOften;
  */
 public class EarlyOftenTest {
 	private EarlyOften earlyOften;
-	private Map<String, Integer> batchProcessed;
+	private Map<String, Long> batchProcessed;
 	
 	/**
 	 * @throws java.lang.Exception
@@ -24,9 +24,9 @@ public class EarlyOftenTest {
 	@BeforeEach
 	public void setUp() throws Exception {
 		this.earlyOften = new EarlyOften();
-		this.batchProcessed = new HashMap<String, Integer>();
-		this.batchProcessed.put("totalEdits", 400);
-		this.batchProcessed.put("totalWeightedEdits", 1200);
+		this.batchProcessed = new HashMap<String, Long>();
+		this.batchProcessed.put("totalEdits", 400L);
+		this.batchProcessed.put("totalWeightedEdits", 1200L);
 	}
 	
 	@Test

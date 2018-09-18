@@ -39,26 +39,26 @@ public class StudentProjectTest {
 	@DisplayName("processBatch; 1 file, 1 event")
 	public void testProcessBatch1File1Event() {
 		SensorData[] events = Arrays.copyOfRange(this.events, 0, 1);
-		Map<String, Integer> processed = this.studentProject.processBatch(events);
-		assertEquals(300, (int) processed.get("totalEdits"));
-		assertEquals(2100, (int) processed.get("totalWeightedEdits"));
+		Map<String, Long> processed = this.studentProject.processBatch(events);
+		assertEquals(300, (long) processed.get("totalEdits"));
+		assertEquals(2100, (long) processed.get("totalWeightedEdits"));
 	}
 
 	@Test
 	@DisplayName("processBatch; 1 file, 2 events")
 	public void testProcessBatch1File2Events() {
 		SensorData[] events = Arrays.copyOfRange(this.events, 0, 2);
-		Map<String, Integer> processed = this.studentProject.processBatch(events);
-		assertEquals(325, (int) processed.get("totalEdits"));
-		assertEquals(2200, (int) processed.get("totalWeightedEdits"));
+		Map<String, Long> processed = this.studentProject.processBatch(events);
+		assertEquals(325, (long) processed.get("totalEdits"));
+		assertEquals(2200, (long) processed.get("totalWeightedEdits"));
 	}
 
 	@Test
 	@DisplayName("processBatch; 2 files, 2 events each")
 	public void testProcessBatch2Files2Events() {
-		Map<String, Integer> processed = this.studentProject.processBatch(this.events);
-		assertEquals(387, (int) processed.get("totalEdits"));
-		assertEquals(2486, (int) processed.get("totalWeightedEdits"));
+		Map<String, Long> processed = this.studentProject.processBatch(this.events);
+		assertEquals(387, (long) processed.get("totalEdits"));
+		assertEquals(2486, (long) processed.get("totalWeightedEdits"));
 	}
 
 	@Test
