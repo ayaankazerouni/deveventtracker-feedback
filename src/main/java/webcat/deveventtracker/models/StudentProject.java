@@ -4,10 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import main.java.webcat.deveventtracker.db.Database;
 import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
 
 /**
  * Represents an assignment state for a given student.
+ * Maps to the FeedbackForStudentProject object in the Web-CAT database.
  * 
  * @author Ayaan Kazerouni
  * @version 2018-09-13
@@ -27,10 +29,14 @@ public class StudentProject {
      * @param assignment The {@link Assignment} for this student project
      */
     public StudentProject(String userId, Assignment assignment) {
+        this(userId, assignment, new HashMap<String, CurrentFileSize>(), new EarlyOften());
+    }
+    
+    public StudentProject(String userId, Assignment assignment, Map<String, CurrentFileSize> fileSizes, EarlyOften earlyOften) {
         this.userId = userId;
-        this.earlyOften = new EarlyOften();
-        this.fileSizes = new HashMap<String, CurrentFileSize>();
         this.assignment = assignment;
+        this.fileSizes = fileSizes;
+        this.earlyOften = earlyOften;
     }
 
     /**
@@ -124,5 +130,10 @@ public class StudentProject {
      */
     public void updateEarlyOften(SensorData[] events) {
         this.earlyOften.update(this.processBatch(events));
+    }
+    
+    public static StudentProject getForStudentOnAssignment(String userId, Assignment assignment) {
+        Database db = Database.getInstance();
+        return db.getStudentProject(userId, assignment);
     }
 }

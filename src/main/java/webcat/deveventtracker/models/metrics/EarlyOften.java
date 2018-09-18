@@ -23,10 +23,26 @@ public class EarlyOften {
      * Initialises an EarlyOften object, with 0 edits.
      */
     public EarlyOften() {
-        this.totalEdits = 0;
-        this.totalWeightedEdits = 0;
-        this.score = Integer.MAX_VALUE;
-        this.lastUpdated = -1;
+        this(0, 0, Double.MAX_VALUE, 0);
+    }
+
+    /**
+     * Initialises an EarlyOften object with the specified values.
+     * 
+     * @param totalEdits         The total number of edits made so far
+     * @param totalWeightedEdits The total number of edits, with each edit weighted
+     *                           by it's time-distance from the
+     *                           {@link main.java.webcat.deveventtracker.models.Assignment
+     *                           Assignment} deadline in days
+     * @param score              The initial score
+     * @param lastUpdated        The timestamp for the most recent event seen, in
+     *                           milliseconds
+     */
+    public EarlyOften(int totalEdits, int totalWeightedEdits, double score, long lastUpdated) {
+        this.totalEdits = totalEdits;
+        this.totalWeightedEdits = totalWeightedEdits;
+        this.score = score;
+        this.lastUpdated = lastUpdated;
     }
 
     /**
@@ -90,7 +106,8 @@ public class EarlyOften {
     }
 
     /**
-     * @return The timestamp in milliseconds of the most recent {@link main.java.webcat.deveventtracker.models.SensorData SensorData}
+     * @return The timestamp in milliseconds of the most recent
+     *         {@link main.java.webcat.deveventtracker.models.SensorData SensorData}
      *         event seen by this EarlyOften object
      */
     public long getLastUpdated() {
@@ -122,4 +139,9 @@ public class EarlyOften {
         // Calculate new early often score
         this.score = (double) this.totalWeightedEdits / this.totalEdits;
     }
+
+    /**
+     * Get the current early often score for the given student on the given
+     * assignment
+     */
 }

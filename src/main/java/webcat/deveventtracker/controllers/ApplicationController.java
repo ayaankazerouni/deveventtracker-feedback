@@ -5,6 +5,8 @@ package main.java.webcat.deveventtracker.controllers;
 
 import main.java.webcat.deveventtracker.db.Database;
 import main.java.webcat.deveventtracker.models.Assignment;
+import main.java.webcat.deveventtracker.models.SensorData;
+import main.java.webcat.deveventtracker.models.StudentProject;
 
 /**
  * Main controller for the application. Triggers calculation of metrics for all
@@ -26,5 +28,13 @@ public class ApplicationController {
     public ApplicationController(String assignmentId) {
         this.db = Database.getInstance();
         this.assignment = this.db.getAssignment(assignmentId);
+    }
+    
+    public void updateEarlyOftenForStudent(String userId) {
+        StudentProject studentProject = this.db.getStudentProject(userId, this.assignment);
+        SensorData[] events = this.db.getNewEventsForStudentOnAssignment(studentProject, studentProject.getEarlyOften().getLastUpdated());
+        studentProject.updateEarlyOften(events);
+        
+        // TODO: Update the DB
     }
 }
