@@ -90,7 +90,7 @@ public class EarlyOften {
     }
 
     /**
-     * @return The timestamp in milliseconds of the most recent {@link SensorData}
+     * @return The timestamp in milliseconds of the most recent {@link org.webcat.deveventtracker.models.SensorData SensorData}
      *         event seen by this EarlyOften object
      */
     public long getLastUpdated() {

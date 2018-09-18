@@ -12,129 +12,123 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.webcat.deveventtracker.models.Assignment;
 import org.webcat.deveventtracker.models.SensorData;
 
 /**
- * Singleton class providing restricted access to
- * the database.
+ * Singleton class providing restricted access to the database.
  * 
  * @author Ayaan Kazerouni
  * @version 2018-09-13
  */
 public class Database {
-    
+
     /**
      * The singleton instance
      */
     private static Database theInstance;
-    
+
     private Connection connect;
-    
+    private ResultSet result;
+
     private Database() throws SQLException {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-    
+
             String user = System.getProperty("mysql.user");
             String pw = System.getProperty("mysql.pw");
-            this.connect = DriverManager.getConnection("jdbc:mysql://localhost/web-cat-dev?"
-                    + "user=" + user + "&"
-                    + "password=" + pw + "&"
-                    + "serverTimezone=UTC");
+            this.connect = DriverManager.getConnection("jdbc:mysql://localhost/web-cat-dev?" + "user=" + user + "&"
+                    + "password=" + pw + "&" + "serverTimezone=UTC");
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            this.connect.close();
-        }
+        } 
     }
-    
-    /** 
+
+    /**
      * @return a singleton instance of this class, creating it if necessary
      */
     public static Database getInstance() {
         if (theInstance == null) {
             try {
                 theInstance = new Database();
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 System.out.println("An error occurred while getting the MySQL connection:\n" + e.getMessage());
             }
         }
-        
+
         return theInstance;
     }
 
     /**
-     * Gets {@link SensorData} events from within a certain time range for the give
-     * student project.
+     * Gets the newest {@link SensorData} events for the specified student for the
+     * specified assignment. "New" events are those that come after the given
+     * {@code afterTime}.
      * 
-     * @param userId The student's ID
-     * @param projectId The student project ID
-     * @param startTime The range start time, inclusive, in milliseconds
-     * @param endTime The range end time, inclusive, in milliseconds
-     * @return An array of {@link SensorData} objects
+     * @param userId A user id, maps to TUSER.OID
+     * @param assignmentId An assignment id, maps to TASSIGNMENTOFFERING.OID
+     * @param afterTime, A time stamp in milliseconds
+     * @return An array of {@link SensorData} events
      */
-    public SensorData[] getEventsInTimeRange(String userId, String projectId, long startTime, long endTime) {
+    public SensorData[] getNewEventsForStudentOnAssignment(String userId, String assignmentId, long afterTime) {
         List<SensorData> events = new ArrayList<SensorData>();
-
-        String sdQuery = "select SensorData.`time`, SensorDataProperty.value as 'className', SensorData.currentSize " +
-            "from SensorData, SensorDataProperty, StudentProject, StudentProjectForAssignment, ProjectForAssignment, TASSIGNMENTOFFERING " +
-            "where SensorData.projectId = StudentProject.OID " +
-                "and SensorDataProperty.name = 'Class-Name' " +
-                "and SensorDataProperty.sensorDataId = SensorData.OID " +
-                "and StudentProject.OID = StudentProjectForAssignment.studentProjectId " +
-                "and StudentProjectForAssignment.projectForAssignmentId = ProjectForAssignment.OID " +
-                "and ProjectForAssignment.assignmentOfferingId = TASSIGNMENTOFFERING.OID " +
-                "and SensorData.projectId = ? and SensorData.userId = ? " +
-                "and SensorData.`time` >= ? and SensorData.`time` <= ?;";
-        try  {
+        String sdQuery = "select SensorData.`time`, SensorDataProperty.value as 'className', SensorData.currentSize "
+                + "from SensorData, SensorDataProperty, StudentProject, StudentProjectForAssignment, ProjectForAssignment, TASSIGNMENTOFFERING "
+                + "where SensorData.projectId = StudentProject.OID " + "and SensorDataProperty.name = 'Class-Name' "
+                + "and SensorDataProperty.sensorDataId = SensorData.OID "
+                + "and StudentProject.OID = StudentProjectForAssignment.studentProjectId "
+                + "and StudentProjectForAssignment.projectForAssignmentId = ProjectForAssignment.OID "
+                + "and ProjectForAssignment.assignmentOfferingId = TASSIGNMENTOFFERING.OID "
+                + "and SensorData.userId = ? "
+                + "and TASSIGNMENTOFFERING.OID = ? "
+                + "and SensorData.`time` >= ?;";
+        try {
             PreparedStatement preparedStatement = this.connect.prepareStatement(sdQuery);
             preparedStatement.setString(1, userId);
-            preparedStatement.setString(2, projectId);
-            preparedStatement.setDate(3, new Date(startTime));
-            preparedStatement.setDate(4, new Date(endTime));
-            ResultSet result = preparedStatement.executeQuery();
-
-            while(result.next()) {
-                long time = result.getDate("time").getTime();
-                String className = result.getString("className");
-                int currentSize = result.getInt("currentSize");
-    
-                SensorData event = new SensorData(time, currentSize, className);
-                events.add(event);
-            }
-        } catch(SQLException e) {
-            System.out.println("An error occured while retrieving SensorData.");
+            preparedStatement.setString(2, assignmentId);
+            preparedStatement.setDate(3, new Date(afterTime));
+        } catch (SQLException e) {
+            System.out.println("An exception occured while retrieving SensorData.");
+            return null;
         }
-
         return events.toArray(new SensorData[events.size()]);
     }
 
     /**
-     * Get the assignment deadline for a given project.
-     *
-     * @param projectId The ID of the student project
-     * @return The assignment deadline in milliseconds
-     * @throws IllegalArgumentException if an assignment was not found 
-     *      for this project 
+     * Get the specified TASSIGNMENTOFFERING from Web-CAT.
+     * 
+     * @param assignmentOfferingId The TASSIGNMENTOFFERING.OID
+     * @return An {@link Assignment}
+     * @throws IllegalArgumentException if there is no assignment offering with the
+     *                                  specified id.
      */
-    public long getProjectDeadline(String projectId) {
-        String deadlineQuery = "select TASSIGNMENTOFFERING.CDUEDATE as deadline " +
-            "from SensorData, ProjectForAssignment, TASSIGNMENTOFFERING " +
-            "where SensorData.projectId = ProjectForAssignment.OID " +
-                "and ProjectForAssignment.assignmentOfferingId = TASSIGNMENTOFFERING.OID " +
-                "and projectId = ? " +
-            "limit 1;";
+    public Assignment getAssignment(String assignmentOfferingId) {
+        String query = "select OID as assignmentId, CDUEDATE as deadline " + "from TASSIGNMENTOFFERING "
+                + "where OID = ?";
         try {
-            PreparedStatement preparedStatement = this.connect.prepareStatement(deadlineQuery);
-            preparedStatement.setString(1, projectId);
-            ResultSet result = preparedStatement.executeQuery();
-            if (result.first()) {
-                return result.getDate("deadline").getTime();
+            PreparedStatement preparedStatement = this.connect.prepareStatement(query);
+            preparedStatement.setString(1, assignmentOfferingId);
+            this.result = preparedStatement.executeQuery();
+            if (this.result.first()) {
+                return new Assignment(this.result.getString("assignmentId"), this.result.getLong("deadline"));
             } else {
-                throw new IllegalArgumentException("Could not find an assignment offering for the project id " + projectId + ".");
+                throw new IllegalArgumentException(
+                        "Couldn't find an assignment offering with id=" + assignmentOfferingId);
             }
-        } catch(SQLException e) {
-            System.out.println("An error occurred while getting the project deadline.");
-            return -1;
+        } catch (SQLException e) {
+            System.out.println("An exception occured while retrieving the assigment.");
+            return null;
+        } finally {
+            this.close();
+        }
+    }
+
+    private void close() {
+        try {
+            if (this.result != null) {
+                this.result.close();
+            }
+        } catch (SQLException e) {
+            System.out.println("An error occured while closing resources.");
         }
     }
 }
