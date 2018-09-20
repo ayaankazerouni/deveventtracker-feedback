@@ -42,7 +42,6 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
-			<scope>runtime</scope>
 			<version>5.3.1</version>
 		</dependency>
 	</dependencies>

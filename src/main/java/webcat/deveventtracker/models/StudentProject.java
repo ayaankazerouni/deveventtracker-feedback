@@ -8,8 +8,8 @@ import main.java.webcat.deveventtracker.db.Database;
 import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
 
 /**
- * Represents an assignment state for a given student.
- * Maps to the FeedbackForStudentProject object in the Web-CAT database.
+ * Represents an assignment state for a given student. Maps to the
+ * FeedbackForStudentProject object in the Web-CAT database.
  * 
  * @author Ayaan Kazerouni
  * @version 2018-09-13
@@ -17,6 +17,7 @@ import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
 public class StudentProject {
     private String userId;
     private Assignment assignment;
+    private String studentProjectId;
     private Map<String, CurrentFileSize> fileSizes;
 
     private EarlyOften earlyOften;
@@ -25,15 +26,19 @@ public class StudentProject {
      * Initialises a project for the specified student (user) on the given
      * assignment.
      * 
-     * @param userId A unique identifier for the user
-     * @param assignment The {@link Assignment} for this student project
+     * @param userId           The id of the user (TUSER.OID)
+     * @param studentProjectId The StudentProject id (StudentProject.OID)
+     * @param assignment       The assignment offering id (TASSIGNMENTOFFERING.OID)
+     * @param fileSizes        The
+     *                         {@link main.java.webcat.deveventtracker.models.CurrentFileSize
+     *                         CurrentFileSize} for each file seen so far
+     * @param earlyOften       The {@link EarlyOften} score and intermediate data
+     *                         for this student project
      */
-    public StudentProject(String userId, Assignment assignment) {
-        this(userId, assignment, new HashMap<String, CurrentFileSize>(), new EarlyOften());
-    }
-    
-    public StudentProject(String userId, Assignment assignment, Map<String, CurrentFileSize> fileSizes, EarlyOften earlyOften) {
+    public StudentProject(String userId, String studentProjectId, Assignment assignment,
+            Map<String, CurrentFileSize> fileSizes, EarlyOften earlyOften) {
         this.userId = userId;
+        this.studentProjectId = studentProjectId;
         this.assignment = assignment;
         this.fileSizes = fileSizes;
         this.earlyOften = earlyOften;
@@ -56,7 +61,21 @@ public class StudentProject {
     }
 
     /**
-     * @return the {@link Assignment} 
+     * @return the studentProjectId
+     */
+    public String getStudentProjectId() {
+        return this.studentProjectId;
+    }
+
+    /**
+     * @param studentProjectId the studentProjectId to set
+     */
+    public void setStudentProjectId(String studentProjectId) {
+        this.studentProjectId = studentProjectId;
+    }
+
+    /**
+     * @return the {@link Assignment}
      */
     public Assignment getAssignment() {
         return this.assignment;
@@ -92,7 +111,7 @@ public class StudentProject {
             if (event.getTime() >= lastUpdated) {
                 lastUpdated = event.getTime();
             }
-            
+
             String className = event.getClassName();
             int size = event.getCurrentSize();
 
@@ -131,7 +150,7 @@ public class StudentProject {
     public void updateEarlyOften(SensorData[] events) {
         this.earlyOften.update(this.processBatch(events));
     }
-    
+
     public static StudentProject getForStudentOnAssignment(String userId, Assignment assignment) {
         Database db = Database.getInstance();
         return db.getStudentProject(userId, assignment);

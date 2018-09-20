@@ -1,4 +1,4 @@
-/**
+/*
  * 
  */
 package main.java.webcat.deveventtracker.controllers;
@@ -13,10 +13,10 @@ import main.java.webcat.deveventtracker.models.StudentProject;
  * students on a given assignment.
  * 
  * @author Ayaan Kazerouni
- * @version 2018-09-17
+ * @version 2018-09-20
  */
 public class ApplicationController {
-    private Assignment assignment;
+    private Assignment[] assignments;
     private Database db;
     
     /**
@@ -25,13 +25,13 @@ public class ApplicationController {
      * @param assignmentId A TASSIGNMENTOFFERING.OID
      * @see main.java.webcat.deveventtracker.models.Assignment Assignment
      */
-    public ApplicationController(String assignmentId) {
+    public ApplicationController(String[] assignmentOfferingIds) {
         this.db = Database.getInstance();
-        this.assignment = this.db.getAssignment(assignmentId);
+        this.assignments = this.db.getAssignments(assignmentOfferingIds);
     }
-    
-    public void updateEarlyOftenForStudent(String userId) {
-        StudentProject studentProject = this.db.getStudentProject(userId, this.assignment);
+
+    public void updateEarlyOftenForStudent(String userId, Assignment assignment) {
+        StudentProject studentProject = this.db.getStudentProject(userId, assignment);
         SensorData[] events = this.db.getNewEventsForStudentOnAssignment(studentProject, studentProject.getEarlyOften().getLastUpdated());
         studentProject.updateEarlyOften(events);
         

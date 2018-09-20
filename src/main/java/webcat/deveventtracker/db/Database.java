@@ -24,7 +24,7 @@ import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
  * Singleton class providing restricted access to the database.
  * 
  * @author Ayaan Kazerouni
- * @version 2018-09-13
+ * @version 2018-09-20
  */
 public class Database {
 
@@ -111,19 +111,37 @@ public class Database {
      * @throws IllegalArgumentException if there is no assignment offering with the
      *                                  specified id.
      */
-    public Assignment getAssignment(String assignmentOfferingId) {
-        String query = "select OID as assignmentId, CDUEDATE as deadline " + "from TASSIGNMENTOFFERING "
-                + "where OID = ?";
+    public Assignment[] getAssignments(String[] assignmentOfferingIds) {
+        StringBuilder query = new StringBuilder("select OID as assignmentId, CDUEDATE as deadline " + "from TASSIGNMENTOFFERING "
+                + "where OID in (");
+       
+        for (int i = 0; i < assignmentOfferingIds.length; i++) {
+            if (i == 0) {
+                query.append("?");
+            } else {
+                query.append(", ?");
+            }
+        }
+        
         ResultSet result = null;
         try {
-            PreparedStatement preparedStatement = this.connect.prepareStatement(query);
-            preparedStatement.setString(1, assignmentOfferingId);
+            PreparedStatement preparedStatement = this.connect.prepareStatement(query.toString());
+            for (int i = 1; i <= assignmentOfferingIds.length; i++) {
+                preparedStatement.setInt(i, Integer.parseInt(assignmentOfferingIds[i - 1])); // Prepared statement params are 1-indexed
+            }
             result = preparedStatement.executeQuery();
+            
+            List<Assignment> assignments = new ArrayList<Assignment>();
+            
             if (result.first()) {
-                return new Assignment(result.getString("assignmentId"), result.getLong("deadline"));
+                do {
+                    assignments.add(new Assignment(result.getString("assignmentId"), result.getLong("deadline")));
+                } while (result.next());
+                
+                return assignments.toArray(new Assignment[assignments.size()]);
             } else {
                 throw new IllegalArgumentException(
-                        "Couldn't find an assignment offering with id=" + assignmentOfferingId);
+                        "Couldn't find any assignment offerings with specified ids.");
             }
         } catch (SQLException e) {
             System.out.println("An exception occured while retrieving the assigment.");
@@ -135,10 +153,9 @@ public class Database {
 
     public StudentProject getStudentProject(String userId, Assignment assignment) {
         String query = "select FileSizeForStudentProject.name as className, FileSizeForStudentProject.size as currentSize, "
-                + "EarlyOftenForStudentProject.* "
-                + "from IncDevFeedbackForStudentProject, EarlyOftenForFeedback, FileSizeForStudentProject "
-                + "where IncDevFeedbackForStudentProject.earlyOftenId = EarlyOftenForFeedback.id "
-                + "and FileSizeForStudentProject.feedbackId = IncDevFeedbackForStudentProject.id "
+                + "IncDevFeedbackFromStudentProject.* "
+                + "from IncDevFeedbackForStudentProject, FileSizeForStudentProject "
+                + "where FileSizeForStudentProject.feedbackId = IncDevFeedbackForStudentProject.id "
                 + "and IncDevFeedbackForStudentProject.userId = ? and IncDevFeedbackForStudentProject.assignmentOfferingId = ?";
         ResultSet result = null;
         try {
@@ -150,7 +167,8 @@ public class Database {
             if (result.first()) {
                 // The early often score will be replicated for each file entry
                 EarlyOften earlyOften = new EarlyOften(result.getInt("totalEdits"), result.getInt("totalWeightedEdits"),
-                        result.getDouble("score"), result.getLong("lastUpdated"));
+                        result.getDouble("earlyOftenScore"), result.getLong("lastUpdated"));
+                String studentProjectId = result.getString("studentProjectId");
                 do {
                     // We moved to the first one already, so read it before moving the cursor
                     // further
@@ -158,7 +176,7 @@ public class Database {
                             new CurrentFileSize(result.getString("className"), result.getInt("currentSize")));
                 } while (result.next());
 
-                StudentProject project = new StudentProject(userId, assignment, fileSizes, earlyOften);
+                StudentProject project = new StudentProject(userId, studentProjectId, assignment, fileSizes, earlyOften);
                 return project;
             } else {
                 // We haven't seen this project before.

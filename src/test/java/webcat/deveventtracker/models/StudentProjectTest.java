@@ -3,6 +3,7 @@ package test.java.webcat.deveventtracker.models;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import main.java.webcat.deveventtracker.models.Assignment;
+import main.java.webcat.deveventtracker.models.CurrentFileSize;
 import main.java.webcat.deveventtracker.models.SensorData;
 import main.java.webcat.deveventtracker.models.StudentProject;
 import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
@@ -28,7 +30,9 @@ public class StudentProjectTest {
 	@BeforeEach
 	public void setUp() throws Exception {
 		// Mock deadline: September 15
-		this.studentProject = new StudentProject("123", new Assignment("123", 1537055940000L));
+	    Assignment assignment = new Assignment("123", 1537055940000L);
+	    Map<String, CurrentFileSize> fileSizes = new HashMap<String, CurrentFileSize>();
+		this.studentProject = new StudentProject("123", "123", assignment, fileSizes, new EarlyOften());
 		this.events = new SensorData[] { new SensorData(1536428003000L, 300, "FirstClass"), // September 8
 				new SensorData(1536690345000L, 275, "FirstClass"), // September 11
 				new SensorData(1536610046000L, 50, "SecondClass"), // September 10

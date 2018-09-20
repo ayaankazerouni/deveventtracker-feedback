@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ayaankazerouni/inc-dev-feedback.svg?branch=master)](https://travis-ci.org/ayaankazerouni/inc-dev-feedback)
+
 # inc-dev-feedback
 
 Incremental development feedback provider for Web-CAT projects that collect Sensordata.

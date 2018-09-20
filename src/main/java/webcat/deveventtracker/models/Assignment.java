@@ -3,8 +3,6 @@
  */
 package main.java.webcat.deveventtracker.models;
 
-import main.java.webcat.deveventtracker.db.Database;
-
 /** 
  * Light representation of the TASSIGNMENTOFFERING table in the 
  * Web-CAT database. 
@@ -55,16 +53,5 @@ public class Assignment {
      */
     public void setDeadline(long deadline) {
         this.deadline = deadline;
-    }
-    
-    /**
-     * Gets the Assignment with the specified assignment offering id.
-     * 
-     * @param assignmentOfferingId Maps to TASSIGNMENTOFFERING.OID
-     * @returns an assignment from the Web-CAT database based on the specified Id
-     */
-    public static Assignment getFromOffering(String assignmentOfferingId) {
-       Database db = Database.getInstance();
-       return db.getAssignment(assignmentOfferingId);
     }
 }
