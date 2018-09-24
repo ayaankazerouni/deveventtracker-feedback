@@ -2,8 +2,9 @@ package test.java.webcat.deveventtracker.models;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -13,16 +14,16 @@ import org.junit.jupiter.api.Test;
 import main.java.webcat.deveventtracker.models.Assignment;
 import main.java.webcat.deveventtracker.models.CurrentFileSize;
 import main.java.webcat.deveventtracker.models.SensorData;
-import main.java.webcat.deveventtracker.models.StudentProject;
+import main.java.webcat.deveventtracker.models.Feedback;
 import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
 
 /**
  * @author Ayaan Kazerouni
  * @version 2018-09-13
  */
-public class StudentProjectTest {
-	private StudentProject studentProject;
-	private SensorData[] events;
+public class FeedbackTest {
+	private Feedback studentProject;
+	private List<SensorData> events;
 
 	/**
 	 * @throws java.lang.Exception
@@ -32,18 +33,18 @@ public class StudentProjectTest {
 		// Mock deadline: September 15
 	    Assignment assignment = new Assignment("123", 1537055940000L);
 	    Map<String, CurrentFileSize> fileSizes = new HashMap<String, CurrentFileSize>();
-		this.studentProject = new StudentProject("123", "123", assignment, fileSizes, new EarlyOften());
-		this.events = new SensorData[] { new SensorData(1536428003000L, 300, "FirstClass"), // September 8
-				new SensorData(1536690345000L, 275, "FirstClass"), // September 11
-				new SensorData(1536610046000L, 50, "SecondClass"), // September 10
-				new SensorData(1536782783000L, 62, "SecondClass") // September 12
-		};
+		this.studentProject = new Feedback("123", "123", assignment, fileSizes, new EarlyOften());
+		this.events = new ArrayList<SensorData>();
+		this.events.add(new SensorData(1536428003000L, 300, "FirstClass")); // September 8
+		this.events.add(new SensorData(1536690345000L, 275, "FirstClass")); // September 11
+		this.events.add(new SensorData(1536610046000L, 50, "SecondClass")); // September 10
+		this.events.add(new SensorData(1536782783000L, 62, "SecondClass")); // September 12
 	}
 
 	@Test
 	@DisplayName("processBatch; 1 file, 1 event")
 	public void testProcessBatch1File1Event() {
-		SensorData[] events = Arrays.copyOfRange(this.events, 0, 1);
+		List<SensorData> events = this.events.subList(0, 1);
 		Map<String, Long> processed = this.studentProject.processBatch(events);
 		assertEquals(300, (long) processed.get("totalEdits"));
 		assertEquals(2100, (long) processed.get("totalWeightedEdits"));
@@ -52,7 +53,7 @@ public class StudentProjectTest {
 	@Test
 	@DisplayName("processBatch; 1 file, 2 events")
 	public void testProcessBatch1File2Events() {
-		SensorData[] events = Arrays.copyOfRange(this.events, 0, 2);
+		List<SensorData> events = this.events.subList(0, 2);
 		Map<String, Long> processed = this.studentProject.processBatch(events);
 		assertEquals(325, (long) processed.get("totalEdits"));
 		assertEquals(2200, (long) processed.get("totalWeightedEdits"));

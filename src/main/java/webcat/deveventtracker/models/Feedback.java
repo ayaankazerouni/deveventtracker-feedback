@@ -1,6 +1,7 @@
 package main.java.webcat.deveventtracker.models;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -14,7 +15,7 @@ import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
  * @author Ayaan Kazerouni
  * @version 2018-09-13
  */
-public class StudentProject {
+public class Feedback {
     private String userId;
     private Assignment assignment;
     private String studentProjectId;
@@ -35,7 +36,7 @@ public class StudentProject {
      * @param earlyOften       The {@link EarlyOften} score and intermediate data
      *                         for this student project
      */
-    public StudentProject(String userId, String studentProjectId, Assignment assignment,
+    public Feedback(String userId, String studentProjectId, Assignment assignment,
             Map<String, CurrentFileSize> fileSizes, EarlyOften earlyOften) {
         this.userId = userId;
         this.studentProjectId = studentProjectId;
@@ -100,7 +101,7 @@ public class StudentProject {
      *         totalWeightedEdits, and lastUpdated
      * @see EarlyOften
      */
-    public Map<String, Long> processBatch(SensorData[] events) {
+    public Map<String, Long> processBatch(List<SensorData> events) {
         HashMap<String, Long> newBatch = new HashMap<String, Long>();
         int totalEdits = 0;
         int totalWeightedEdits = 0;
@@ -147,11 +148,11 @@ public class StudentProject {
      * @see SensorData
      * @see EarlyOften
      */
-    public void updateEarlyOften(SensorData[] events) {
+    public void updateEarlyOften(List<SensorData> events) {
         this.earlyOften.update(this.processBatch(events));
     }
 
-    public static StudentProject getForStudentOnAssignment(String userId, Assignment assignment) {
+    public static Feedback getForStudentOnAssignment(String userId, Assignment assignment) {
         Database db = Database.getInstance();
         return db.getStudentProject(userId, assignment);
     }

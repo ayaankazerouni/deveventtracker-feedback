@@ -17,7 +17,7 @@ import java.util.Map;
 import main.java.webcat.deveventtracker.models.Assignment;
 import main.java.webcat.deveventtracker.models.CurrentFileSize;
 import main.java.webcat.deveventtracker.models.SensorData;
-import main.java.webcat.deveventtracker.models.StudentProject;
+import main.java.webcat.deveventtracker.models.Feedback;
 import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
 
 /**
@@ -68,11 +68,11 @@ public class Database {
      * specified assignment. "New" events are those that come after the given
      * {@code afterTime}.
      * 
-     * @param project   The {@link StudentProject} for which we want new events
+     * @param project   The {@link Feedback} for which we want new events
      * @param afterTime A time stamp in milliseconds
      * @return An array of {@link SensorData} events
      */
-    public SensorData[] getNewEventsForStudentOnAssignment(StudentProject project, long afterTime) {
+    public List<SensorData> getNewEventsForStudentOnAssignment(Feedback project, long afterTime) {
         List<SensorData> events = new ArrayList<SensorData>();
         ResultSet result = null;
         String sdQuery = "select SensorData.`time`, SensorDataProperty.value as 'className', SensorData.currentSize as currentSize"
@@ -100,21 +100,21 @@ public class Database {
         } finally {
             this.close(result);
         }
-        return events.toArray(new SensorData[events.size()]);
+        return events;
     }
 
     /**
-     * Get the specified TASSIGNMENTOFFERING from Web-CAT.
+     * Get the specified TASSIGNMENTOFFERINGs from Web-CAT.
      * 
-     * @param assignmentOfferingId The TASSIGNMENTOFFERING.OID
-     * @return An {@link Assignment}
-     * @throws IllegalArgumentException if there is no assignment offering with the
-     *                                  specified id.
+     * @param assignmentOfferingId A list of TASSIGNMENTOFFERING.OID values
+     * @return A list of {@link Assignment} objects
+     * @throws IllegalArgumentException if there are no assignments offering with
+     *                                  the specified id.
      */
-    public Assignment[] getAssignments(String[] assignmentOfferingIds) {
-        StringBuilder query = new StringBuilder("select OID as assignmentId, CDUEDATE as deadline from tassignmentoffering "
-                + "where OID in (");
-       
+    public List<Assignment> getAssignments(String[] assignmentOfferingIds) {
+        StringBuilder query = new StringBuilder(
+                "select OID as assignmentId, CDUEDATE as deadline from tassignmentoffering " + "where OID in (");
+
         for (int i = 0; i < assignmentOfferingIds.length; i++) {
             if (i == 0) {
                 query.append("?");
@@ -122,29 +122,29 @@ public class Database {
                 query.append(", ?");
             }
         }
-        
+
         query.append(");");
 
         ResultSet result = null;
         try {
             PreparedStatement preparedStatement = this.connect.prepareStatement(query.toString());
             for (int i = 1; i <= assignmentOfferingIds.length; i++) {
-                preparedStatement.setInt(i, Integer.parseInt(assignmentOfferingIds[i - 1])); // Prepared statement params are 1-indexed
+                preparedStatement.setInt(i, Integer.parseInt(assignmentOfferingIds[i - 1])); // Prepared statement
+                                                                                             // params are 1-indexed
             }
             result = preparedStatement.executeQuery();
-            
+
             List<Assignment> assignments = new ArrayList<Assignment>();
-            
+
             if (result.first()) {
                 do {
                     long time = result.getTimestamp("deadline").getTime();
                     assignments.add(new Assignment(result.getString("assignmentId"), time));
                 } while (result.next());
-                
-                return assignments.toArray(new Assignment[assignments.size()]);
+
+                return assignments;
             } else {
-                throw new IllegalArgumentException(
-                        "Couldn't find any assignment offerings with specified ids.");
+                throw new IllegalArgumentException("Couldn't find any assignment offerings with specified ids.");
             }
         } catch (SQLException e) {
             System.out.println("An exception occured while retrieving the assigment.");
@@ -154,7 +154,49 @@ public class Database {
         }
     }
 
-    public StudentProject getStudentProject(String userId, Assignment assignment) {
+    /**
+     * Gets a list of user ids for students who have {@link SensorData} associated
+     * with the specified {@link Assignment}.
+     * 
+     * @param assignment The specified Assignment
+     * @return a list of user ids
+     */
+    public List<String> getUsersWithSensorData(Assignment assignment) {
+        List<String> users = new ArrayList<String>();
+
+        String query = "select distinct sensordata.`userId` "
+                + "from sensordata, studentproject, studentprojectforassignment, projectforassignment, tassignmentoffering "
+                + "where sensordata.projectId = studentproject.OID and studentproject.`OID` = studentprojectforassignment.`studentProjectId` "
+                + "    and studentprojectforassignment.`projectForAssignmentId` = projectforassignment.`OID` "
+                + "    and projectforassignment.`assignmentOfferingId` = tassignmentoffering.`OID` "
+                + "    and tassignmentoffering.`OID` = ?;";
+        ResultSet result = null;
+        try {
+            PreparedStatement preparedStatement = this.connect.prepareStatement(query);
+            preparedStatement.setString(1, assignment.getAssignmentId());
+            result = preparedStatement.executeQuery();
+            while (result.next()) {
+                users.add(result.getString(1));
+            }
+        } catch (SQLException e) {
+            System.out.println("An error occured while retrieving users with SensorData.");
+            e.printStackTrace();
+        } finally {
+            this.close(result);
+        }
+
+        return users;
+    }
+
+    /**
+     * Gets a {@link Feedback} for the specified user on the given
+     * {@link Assignment}. If one does not exist, a new one is created and returned.
+     * 
+     * @param userId     The OID of the specified user
+     * @param assignment the specified assignment
+     * @return
+     */
+    public Feedback getStudentProject(String userId, Assignment assignment) {
         String query = "select FileSizeForStudentProject.name as className, FileSizeForStudentProject.size as currentSize, "
                 + "IncDevFeedbackFromStudentProject.* "
                 + "from IncDevFeedbackForStudentProject, FileSizeForStudentProject "
@@ -179,12 +221,12 @@ public class Database {
                             new CurrentFileSize(result.getString("className"), result.getInt("currentSize")));
                 } while (result.next());
 
-                StudentProject project = new StudentProject(userId, studentProjectId, assignment, fileSizes, earlyOften);
+                Feedback project = new Feedback(userId, studentProjectId, assignment, fileSizes,
+                        earlyOften);
                 return project;
             } else {
-                // We haven't seen this project before.
-                // TODO: Create new and return
-                return null;
+                return new Feedback(userId, "123", assignment, new HashMap<String, CurrentFileSize>(),
+                        new EarlyOften());
             }
 
         } catch (SQLException e) {

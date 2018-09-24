@@ -23,5 +23,7 @@ public class Driver {
      *             TASSIGNMENTOFFERING table
      */
     public static void main(String[] args) {
+        ApplicationController controller = new ApplicationController(args);
+        controller.run();
     }
 }
