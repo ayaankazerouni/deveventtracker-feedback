@@ -1,4 +1,4 @@
-package test.webcat.deveventtracker.models;
+package test.java.webcat.deveventtracker.models;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -8,7 +8,8 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.webcat.deveventtracker.models.metrics.EarlyOften;
+
+import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
 
 /**
  * @author Ayaan Kazerouni
@@ -16,7 +17,7 @@ import org.webcat.deveventtracker.models.metrics.EarlyOften;
  */
 public class EarlyOftenTest {
 	private EarlyOften earlyOften;
-	private Map<String, Integer> batchProcessed;
+	private Map<String, Long> batchProcessed;
 	
 	/**
 	 * @throws java.lang.Exception
@@ -24,9 +25,10 @@ public class EarlyOftenTest {
 	@BeforeEach
 	public void setUp() throws Exception {
 		this.earlyOften = new EarlyOften();
-		this.batchProcessed = new HashMap<String, Integer>();
-		this.batchProcessed.put("totalEdits", 400);
-		this.batchProcessed.put("totalWeightedEdits", 1200);
+		this.batchProcessed = new HashMap<String, Long>();
+		this.batchProcessed.put("totalEdits", 400L);
+		this.batchProcessed.put("totalWeightedEdits", 1200L);
+		this.batchProcessed.put("lastUpdated", 123L);
 	}
 	
 	@Test

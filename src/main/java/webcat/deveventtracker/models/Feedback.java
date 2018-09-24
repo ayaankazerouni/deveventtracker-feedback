@@ -1,18 +1,20 @@
-package org.webcat.deveventtracker.models;
+package main.java.webcat.deveventtracker.models;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.webcat.deveventtracker.models.metrics.EarlyOften;
+import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
 
 /**
- * Represents an assignment state for a given student.
+ * Represents an assignment state for a given student. Maps to the
+ * FeedbackForStudentProject object in the Web-CAT database.
  * 
  * @author Ayaan Kazerouni
  * @version 2018-09-13
  */
-public class StudentProject {
+public class Feedback {
     private String userId;
     private Assignment assignment;
     private Map<String, CurrentFileSize> fileSizes;
@@ -23,13 +25,20 @@ public class StudentProject {
      * Initialises a project for the specified student (user) on the given
      * assignment.
      * 
-     * @param userId A unique identifier for the user
-     * @param assignment The {@link Assignment} for this student project
+     * @param userId     The id of the user (TUSER.OID)
+     * @param assignment The assignment offering id (TASSIGNMENTOFFERING.OID)
+     * @param fileSizes  The
+     *                   {@link main.java.webcat.deveventtracker.models.CurrentFileSize
+     *                   CurrentFileSize} for each file seen so far
+     * @param earlyOften The {@link EarlyOften} score and intermediate data for this
+     *                   student project
      */
-    public StudentProject(String userId, Assignment assignment) {
+    public Feedback(String userId, Assignment assignment, Map<String, CurrentFileSize> fileSizes,
+            EarlyOften earlyOften) {
         this.userId = userId;
-        this.earlyOften = new EarlyOften();
-        this.fileSizes = new HashMap<String, CurrentFileSize>();
+        this.assignment = assignment;
+        this.fileSizes = fileSizes;
+        this.earlyOften = earlyOften;
     }
 
     /**
@@ -49,7 +58,7 @@ public class StudentProject {
     }
 
     /**
-     * @return the {@link Assignment} 
+     * @return the {@link Assignment}
      */
     public Assignment getAssignment() {
         return this.assignment;
@@ -74,7 +83,7 @@ public class StudentProject {
      *         totalWeightedEdits, and lastUpdated
      * @see EarlyOften
      */
-    public Map<String, Long> processBatch(SensorData[] events) {
+    public Map<String, Long> processBatch(List<SensorData> events) {
         HashMap<String, Long> newBatch = new HashMap<String, Long>();
         int totalEdits = 0;
         int totalWeightedEdits = 0;
@@ -85,7 +94,7 @@ public class StudentProject {
             if (event.getTime() >= lastUpdated) {
                 lastUpdated = event.getTime();
             }
-            
+
             String className = event.getClassName();
             int size = event.getCurrentSize();
 
@@ -121,7 +130,7 @@ public class StudentProject {
      * @see SensorData
      * @see EarlyOften
      */
-    public void updateEarlyOften(SensorData[] events) {
+    public void updateEarlyOften(List<SensorData> events) {
         this.earlyOften.update(this.processBatch(events));
     }
 }
