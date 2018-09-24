@@ -68,7 +68,7 @@ public class Assignment {
         Database db = Database.getInstance();
         List<String> studentIds = db.getUsersWithSensorData(this);
         studentIds.parallelStream().forEach(s -> {
-            Feedback project = db.getStudentProject(s, this);
+            Feedback project = db.getFeedback(s, this);
             List<SensorData> events = db.getNewEventsForStudentOnAssignment(project,
                     project.getEarlyOften().getLastUpdated());
             project.updateEarlyOften(events);

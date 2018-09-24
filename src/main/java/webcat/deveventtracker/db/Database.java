@@ -16,8 +16,8 @@ import java.util.Map;
 
 import main.java.webcat.deveventtracker.models.Assignment;
 import main.java.webcat.deveventtracker.models.CurrentFileSize;
-import main.java.webcat.deveventtracker.models.SensorData;
 import main.java.webcat.deveventtracker.models.Feedback;
+import main.java.webcat.deveventtracker.models.SensorData;
 import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
 
 /**
@@ -192,11 +192,11 @@ public class Database {
      * Gets a {@link Feedback} for the specified user on the given
      * {@link Assignment}. If one does not exist, a new one is created and returned.
      * 
-     * @param userId     The OID of the specified user
+     * @param studentProject     The OID of the specified user
      * @param assignment the specified assignment
      * @return
      */
-    public Feedback getStudentProject(String userId, Assignment assignment) {
+    public Feedback getFeedback(String userId, Assignment assignment) {
         String query = "select FileSizeForStudentProject.name as className, FileSizeForStudentProject.size as currentSize, "
                 + "IncDevFeedbackFromStudentProject.* "
                 + "from IncDevFeedbackForStudentProject, FileSizeForStudentProject "
@@ -213,7 +213,6 @@ public class Database {
                 // The early often score will be replicated for each file entry
                 EarlyOften earlyOften = new EarlyOften(result.getInt("totalEdits"), result.getInt("totalWeightedEdits"),
                         result.getDouble("earlyOftenScore"), result.getLong("lastUpdated"));
-                String studentProjectId = result.getString("studentProjectId");
                 do {
                     // We moved to the first one already, so read it before moving the cursor
                     // further
@@ -221,11 +220,11 @@ public class Database {
                             new CurrentFileSize(result.getString("className"), result.getInt("currentSize")));
                 } while (result.next());
 
-                Feedback project = new Feedback(userId, studentProjectId, assignment, fileSizes,
+                Feedback project = new Feedback(userId, assignment, fileSizes,
                         earlyOften);
                 return project;
             } else {
-                return new Feedback(userId, "123", assignment, new HashMap<String, CurrentFileSize>(),
+                return new Feedback(userId, assignment, new HashMap<String, CurrentFileSize>(),
                         new EarlyOften());
             }
 

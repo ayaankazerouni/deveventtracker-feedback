@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import main.java.webcat.deveventtracker.db.Database;
 import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
 
 /**
@@ -18,7 +17,6 @@ import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
 public class Feedback {
     private String userId;
     private Assignment assignment;
-    private String studentProjectId;
     private Map<String, CurrentFileSize> fileSizes;
 
     private EarlyOften earlyOften;
@@ -27,19 +25,17 @@ public class Feedback {
      * Initialises a project for the specified student (user) on the given
      * assignment.
      * 
-     * @param userId           The id of the user (TUSER.OID)
-     * @param studentProjectId The StudentProject id (StudentProject.OID)
-     * @param assignment       The assignment offering id (TASSIGNMENTOFFERING.OID)
-     * @param fileSizes        The
-     *                         {@link main.java.webcat.deveventtracker.models.CurrentFileSize
-     *                         CurrentFileSize} for each file seen so far
-     * @param earlyOften       The {@link EarlyOften} score and intermediate data
-     *                         for this student project
+     * @param userId     The id of the user (TUSER.OID)
+     * @param assignment The assignment offering id (TASSIGNMENTOFFERING.OID)
+     * @param fileSizes  The
+     *                   {@link main.java.webcat.deveventtracker.models.CurrentFileSize
+     *                   CurrentFileSize} for each file seen so far
+     * @param earlyOften The {@link EarlyOften} score and intermediate data for this
+     *                   student project
      */
-    public Feedback(String userId, String studentProjectId, Assignment assignment,
-            Map<String, CurrentFileSize> fileSizes, EarlyOften earlyOften) {
+    public Feedback(String userId, Assignment assignment, Map<String, CurrentFileSize> fileSizes,
+            EarlyOften earlyOften) {
         this.userId = userId;
-        this.studentProjectId = studentProjectId;
         this.assignment = assignment;
         this.fileSizes = fileSizes;
         this.earlyOften = earlyOften;
@@ -59,20 +55,6 @@ public class Feedback {
      */
     public String getUserId() {
         return this.userId;
-    }
-
-    /**
-     * @return the studentProjectId
-     */
-    public String getStudentProjectId() {
-        return this.studentProjectId;
-    }
-
-    /**
-     * @param studentProjectId the studentProjectId to set
-     */
-    public void setStudentProjectId(String studentProjectId) {
-        this.studentProjectId = studentProjectId;
     }
 
     /**
@@ -150,10 +132,5 @@ public class Feedback {
      */
     public void updateEarlyOften(List<SensorData> events) {
         this.earlyOften.update(this.processBatch(events));
-    }
-
-    public static Feedback getForStudentOnAssignment(String userId, Assignment assignment) {
-        Database db = Database.getInstance();
-        return db.getStudentProject(userId, assignment);
     }
 }

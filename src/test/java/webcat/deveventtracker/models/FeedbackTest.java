@@ -33,7 +33,7 @@ public class FeedbackTest {
 		// Mock deadline: September 15
 	    Assignment assignment = new Assignment("123", 1537055940000L);
 	    Map<String, CurrentFileSize> fileSizes = new HashMap<String, CurrentFileSize>();
-		this.studentProject = new Feedback("123", "123", assignment, fileSizes, new EarlyOften());
+		this.studentProject = new Feedback("123", assignment, fileSizes, new EarlyOften());
 		this.events = new ArrayList<SensorData>();
 		this.events.add(new SensorData(1536428003000L, 300, "FirstClass")); // September 8
 		this.events.add(new SensorData(1536690345000L, 275, "FirstClass")); // September 11
