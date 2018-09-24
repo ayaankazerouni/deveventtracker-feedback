@@ -4,11 +4,11 @@
 package main.java.webcat.deveventtracker.db;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,7 +24,7 @@ import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
  * Singleton class providing restricted access to the database.
  * 
  * @author Ayaan Kazerouni
- * @version 2018-09-20
+ * @version 2018-09-24
  */
 public class Database {
 
@@ -87,7 +87,7 @@ public class Database {
             PreparedStatement preparedStatement = this.connect.prepareStatement(sdQuery);
             preparedStatement.setString(1, project.getUserId());
             preparedStatement.setString(2, project.getAssignment().getAssignmentId());
-            preparedStatement.setDate(3, new Date(afterTime));
+            preparedStatement.setTimestamp(3, new Timestamp(afterTime));
             result = preparedStatement.executeQuery();
             while (result.next()) {
                 SensorData event = new SensorData(result.getLong("time"), result.getInt("currentSize"),
@@ -112,7 +112,7 @@ public class Database {
      *                                  specified id.
      */
     public Assignment[] getAssignments(String[] assignmentOfferingIds) {
-        StringBuilder query = new StringBuilder("select OID as assignmentId, CDUEDATE as deadline " + "from TASSIGNMENTOFFERING "
+        StringBuilder query = new StringBuilder("select OID as assignmentId, CDUEDATE as deadline from tassignmentoffering "
                 + "where OID in (");
        
         for (int i = 0; i < assignmentOfferingIds.length; i++) {
@@ -123,6 +123,8 @@ public class Database {
             }
         }
         
+        query.append(");");
+
         ResultSet result = null;
         try {
             PreparedStatement preparedStatement = this.connect.prepareStatement(query.toString());
@@ -135,7 +137,8 @@ public class Database {
             
             if (result.first()) {
                 do {
-                    assignments.add(new Assignment(result.getString("assignmentId"), result.getLong("deadline")));
+                    long time = result.getTimestamp("deadline").getTime();
+                    assignments.add(new Assignment(result.getString("assignmentId"), time));
                 } while (result.next());
                 
                 return assignments.toArray(new Assignment[assignments.size()]);
