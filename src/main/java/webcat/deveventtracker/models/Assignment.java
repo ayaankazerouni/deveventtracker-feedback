@@ -64,14 +64,17 @@ public class Assignment {
      * EarlyOften} scores for all students who have {@link SensorData} associated
      * with this Assignment.
      */
-    public void updateEarlyOftenForAssignment() {
+    public void updateEarlyOften() {
         Database db = Database.getInstance();
         List<String> studentIds = db.getUsersWithSensorData(this);
         studentIds.parallelStream().forEach(s -> {
-            Feedback project = db.getFeedback(s, this);
-            List<SensorData> events = db.getNewEventsForStudentOnAssignment(project,
-                    project.getEarlyOften().getLastUpdated());
-            project.updateEarlyOften(events);
+            Feedback feedback = db.getFeedback(s, this);
+            List<SensorData> events = db.getNewEventsForStudentOnAssignment(feedback,
+                    feedback.getEarlyOften().getLastUpdated());
+            feedback.updateEarlyOften(events);
+            String id = db.upsertFeedback(feedback);
+            
+            // TODO: Update file sizes for feedback item
         });
     }
 }
