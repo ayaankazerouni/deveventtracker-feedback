@@ -106,7 +106,7 @@ public class Database {
     /**
      * Get the specified TASSIGNMENTOFFERINGs from Web-CAT.
      * 
-     * @param assignmentOfferingId A list of TASSIGNMENTOFFERING.OID values
+     * @param assignmentOfferingIds A list of TASSIGNMENTOFFERING.OID values
      * @return A list of {@link Assignment} objects
      * @throws IllegalArgumentException if there are no assignments offering with
      *                                  the specified id.
@@ -192,9 +192,9 @@ public class Database {
      * Gets a {@link Feedback} for the specified user on the given
      * {@link Assignment}. If one does not exist, a new one is created and returned.
      * 
-     * @param studentProject     The OID of the specified user
-     * @param assignment the specified assignment
-     * @return
+     * @param userId     The OID of the specified user
+     * @param assignment The specified assignment
+     * @return Feedback for the student on the assignment
      */
     public Feedback getFeedback(String userId, Assignment assignment) {
         String query = "select FileSizeForStudentProject.name as className, FileSizeForStudentProject.size as currentSize, "
@@ -220,12 +220,10 @@ public class Database {
                             new CurrentFileSize(result.getString("className"), result.getInt("currentSize")));
                 } while (result.next());
 
-                Feedback project = new Feedback(userId, assignment, fileSizes,
-                        earlyOften);
+                Feedback project = new Feedback(userId, assignment, fileSizes, earlyOften);
                 return project;
             } else {
-                return new Feedback(userId, assignment, new HashMap<String, CurrentFileSize>(),
-                        new EarlyOften());
+                return new Feedback(userId, assignment, new HashMap<String, CurrentFileSize>(), new EarlyOften());
             }
 
         } catch (SQLException e) {

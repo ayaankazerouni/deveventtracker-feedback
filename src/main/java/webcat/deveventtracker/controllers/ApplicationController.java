@@ -22,7 +22,7 @@ public class ApplicationController {
     /**
      * Initialises a new assignment controller. 
      * 
-     * @param assignmentId A TASSIGNMENTOFFERING.OID
+     * @param assignmentOfferingIds A TASSIGNMENTOFFERING.OID
      * @see main.java.webcat.deveventtracker.models.Assignment Assignment
      */
     public ApplicationController(String[] assignmentOfferingIds) {
