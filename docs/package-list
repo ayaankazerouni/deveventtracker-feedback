@@ -1,4 +1,4 @@
-org.webcat.deveventtracker.controllers
-org.webcat.deveventtracker.db
-org.webcat.deveventtracker.models
-org.webcat.deveventtracker.models.metrics
+main.java.webcat.deveventtracker.controllers
+main.java.webcat.deveventtracker.db
+main.java.webcat.deveventtracker.models
+main.java.webcat.deveventtracker.models.metrics
