@@ -117,8 +117,8 @@ public class EarlyOften {
     /**
      * Updates this early often score based on a newly processed batch of events.
      * 
-     * @see main.java.webcat.deveventtracker.models.Feedback#processBatch(SensorData[])
-     *      StudentProject.processBatch(SensorData[])
+     * @see main.java.webcat.deveventtracker.models.Feedback#processBatch(java.util.List)
+     *      StudentProject.processBatch(List{@literal <}SensorData {@literal >})
      * @param batchProcessed A map containing the information needed to update the
      *                       index
      * @throws IllegalArgumentException unless {@code batchProcessed} contains BOTH
