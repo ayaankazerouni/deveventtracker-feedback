@@ -3,11 +3,13 @@
  */
 package main.java.webcat.deveventtracker.db;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,7 +26,7 @@ import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
  * Singleton class providing restricted access to the database.
  * 
  * @author Ayaan Kazerouni
- * @version 2018-09-24
+ * @version 2018-09-26
  */
 public class Database {
 
@@ -75,16 +77,15 @@ public class Database {
     public List<SensorData> getNewEventsForStudentOnAssignment(Feedback project, long afterTime) {
         List<SensorData> events = new ArrayList<SensorData>();
         ResultSet result = null;
-        String sdQuery = "select SensorData.`time`, SensorDataProperty.value as 'className', SensorData.currentSize as currentSize"
-                + "from SensorData, SensorDataProperty, StudentProject, StudentProjectForAssignment, ProjectForAssignment, TASSIGNMENTOFFERING "
-                + "where SensorData.projectId = StudentProject.OID " + "and SensorDataProperty.name = 'Class-Name' "
-                + "and SensorDataProperty.sensorDataId = SensorData.OID "
-                + "and StudentProject.OID = StudentProjectForAssignment.studentProjectId "
-                + "and StudentProjectForAssignment.projectForAssignmentId = ProjectForAssignment.OID "
-                + "and ProjectForAssignment.assignmentOfferingId = TASSIGNMENTOFFERING.OID "
-                + "and SensorData.userId = ? " + "and TASSIGNMENTOFFERING.OID = ? " + "and SensorData.`time` >= ?;";
-        try {
-            PreparedStatement preparedStatement = this.connect.prepareStatement(sdQuery);
+        String sdQuery = "select sensordata.`time`, sensordataproperty.value as 'className', sensordata.currentSize as currentSize"
+                + "from sensordata, sensordataproperty, studentproject, studentprojectforassignment, projectforassignment, tassignmentoffering "
+                + "where sensordata.projectId = StudentProject.OID " + "and sensordataproperty.name = 'Class-Name' "
+                + "and sensordataproperty.sensorDataId = sensordata.OID "
+                + "and studentproject.OID = studentprojectforassignment.studentProjectId "
+                + "and studentprojectforassignment.projectForAssignmentId = projectforassignment.OID "
+                + "and projectforassignment.assignmentOfferingId = tassignmentoffering.OID "
+                + "and sensordata.userId = ? " + "and tassignmentoffering.OID = ? " + "and SensorData.`time` >= ?;";
+        try (PreparedStatement preparedStatement = this.connect.prepareStatement(sdQuery)) {
             preparedStatement.setString(1, project.getUserId());
             preparedStatement.setString(2, project.getAssignment().getAssignmentId());
             preparedStatement.setTimestamp(3, new Timestamp(afterTime));
@@ -126,8 +127,7 @@ public class Database {
         query.append(");");
 
         ResultSet result = null;
-        try {
-            PreparedStatement preparedStatement = this.connect.prepareStatement(query.toString());
+        try (PreparedStatement preparedStatement = this.connect.prepareStatement(query.toString())) {
             for (int i = 1; i <= assignmentOfferingIds.length; i++) {
                 preparedStatement.setInt(i, Integer.parseInt(assignmentOfferingIds[i - 1])); // Prepared statement
                                                                                              // params are 1-indexed
@@ -171,8 +171,7 @@ public class Database {
                 + "    and projectforassignment.`assignmentOfferingId` = tassignmentoffering.`OID` "
                 + "    and tassignmentoffering.`OID` = ?;";
         ResultSet result = null;
-        try {
-            PreparedStatement preparedStatement = this.connect.prepareStatement(query);
+        try (PreparedStatement preparedStatement = this.connect.prepareStatement(query)) {
             preparedStatement.setString(1, assignment.getAssignmentId());
             result = preparedStatement.executeQuery();
             while (result.next()) {
@@ -203,8 +202,7 @@ public class Database {
                 + "where FileSizeForStudentProject.feedbackId = IncDevFeedbackForStudentProject.id "
                 + "and IncDevFeedbackForStudentProject.userId = ? and IncDevFeedbackForStudentProject.assignmentOfferingId = ?";
         ResultSet result = null;
-        try {
-            PreparedStatement preparedStatement = this.connect.prepareStatement(query);
+        try (PreparedStatement preparedStatement = this.connect.prepareStatement(query)) {
             preparedStatement.setString(1, userId);
             preparedStatement.setString(2, assignment.getAssignmentId());
             result = preparedStatement.executeQuery();
@@ -213,6 +211,7 @@ public class Database {
                 // The early often score will be replicated for each file entry
                 EarlyOften earlyOften = new EarlyOften(result.getInt("totalEdits"), result.getInt("totalWeightedEdits"),
                         result.getDouble("earlyOftenScore"), result.getLong("lastUpdated"));
+                String feedbackId = result.getString("id");
                 do {
                     // We moved to the first one already, so read it before moving the cursor
                     // further
@@ -220,10 +219,10 @@ public class Database {
                             new CurrentFileSize(result.getString("className"), result.getInt("currentSize")));
                 } while (result.next());
 
-                Feedback project = new Feedback(userId, assignment, fileSizes, earlyOften);
+                Feedback project = new Feedback(feedbackId, userId, assignment, fileSizes, earlyOften);
                 return project;
             } else {
-                return new Feedback(userId, assignment, new HashMap<String, CurrentFileSize>(), new EarlyOften());
+                return new Feedback(userId, assignment); // this has not been saved to the DB yet
             }
 
         } catch (SQLException e) {
@@ -231,6 +230,86 @@ public class Database {
             return null;
         } finally {
             this.close(result);
+        }
+    }
+
+    /**
+     * Update or insert the specified {@link Feedback} object. If the (userId,
+     * Assignment) unique key finds a match, this method will perform an update. If
+     * not it will perform an insertion.
+     * 
+     * This method updates the IncDevFeedbackForStudentProject table.
+     * 
+     * @param feedback The Feedback record to be upserted.
+     * @return The id of the inserted or updated record.
+     */
+    public String upsertFeedback(Feedback feedback) {
+        String sql = "insert into IncDevFeedbackForStudentProject (assignmentOfferingId, userId, totalEdits, totalWeightedEdits, lastUpdatedAt, earlyOftenScore) "
+                + "values (?, ?, ?, ?, ?, ?) on duplicate key update "
+                + "totalEdits=values(totalEdits), totalWeightedEdits=values(totalWeightedEdits), earlyOftenScore=values(earlyOftenScore), lastUpdatedAt=values(lastUpdatedAt);";
+        EarlyOften earlyOften = feedback.getEarlyOften();
+        try (PreparedStatement preparedStatement = this.connect.prepareStatement(sql,
+                Statement.RETURN_GENERATED_KEYS)) {
+            preparedStatement.setString(1, feedback.getAssignment().getAssignmentId());
+            preparedStatement.setString(2, feedback.getUserId());
+            preparedStatement.setInt(3, earlyOften.getTotalEdits());
+            preparedStatement.setInt(4, earlyOften.getTotalWeightedEdits());
+            preparedStatement.setTimestamp(5, new Timestamp(earlyOften.getLastUpdated()));
+            preparedStatement.setBigDecimal(6, new BigDecimal(earlyOften.getScore()));
+
+            int affectedRows = preparedStatement.executeUpdate();
+            ;
+            if (affectedRows == 0) {
+                throw new SQLException("Updating feedback failed.");
+            }
+
+            try (ResultSet keys = preparedStatement.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return keys.getString(1);
+                } else {
+                    throw new SQLException("Could not get ID of updated feedback.");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("An error occured while updating the feedback object.");
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Update or insert the specified file sizes for the specified feedback record.
+     * Note that there must be a record with id feedbackId in the
+     * IncDevFeedbackForStudentProject table, to satisfy the foreign key constraint.
+     * 
+     * @param fileSizes  The Map of current file sizes
+     * @param feedbackId An id that points to a single row in
+     *                   IncDevFeedbackForStudentProject
+     */
+    public void upsertFileSizes(Map<String, CurrentFileSize> fileSizes, String feedbackId) {
+        // Build update statement
+        StringBuilder sql = new StringBuilder(
+                "insert into FileSizeForStudentProject (feedbackId, name, `size`) values ");
+        for (int i = 0; i < fileSizes.size(); i++) {
+            sql.append("(" + feedbackId + ", ?, ?)");
+            if (i < fileSizes.size() - 1) {
+                sql.append(", ");
+            }
+        }
+        sql.append(" on duplicate key update `size`=values(`size`)");
+
+        try (PreparedStatement preparedStatement = this.connect.prepareStatement(sql.toString())) {
+            int i = 0;
+            for (CurrentFileSize f : fileSizes.values()) {
+                preparedStatement.setString(++i, f.getName());
+                preparedStatement.setInt(++i, f.getSize());
+            }
+            int affectedRows = preparedStatement.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Was not able to update any file sizes.");
+            }
+        } catch (SQLException e) {
+            System.out.println("An error occured while updating file sizes.");
         }
     }
 

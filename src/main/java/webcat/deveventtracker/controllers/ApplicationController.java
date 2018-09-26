@@ -32,8 +32,7 @@ public class ApplicationController {
     
     public void run() {
         for (Assignment current : this.assignments) {
-            current.updateEarlyOftenForAssignment();
+            current.updateEarlyOften();
         }
     }
-
 }

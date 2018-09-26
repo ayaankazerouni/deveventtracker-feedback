@@ -15,6 +15,7 @@ import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
  * @version 2018-09-13
  */
 public class Feedback {
+    private String id;
     private String userId;
     private Assignment assignment;
     private Map<String, CurrentFileSize> fileSizes;
@@ -26,19 +27,36 @@ public class Feedback {
      * assignment.
      * 
      * @param userId     The id of the user (TUSER.OID)
-     * @param assignment The assignment offering id (TASSIGNMENTOFFERING.OID)
+     * @param assignment The {@link Assignment}
      * @param fileSizes  The
      *                   {@link main.java.webcat.deveventtracker.models.CurrentFileSize
-     *                   CurrentFileSize} for each file seen so far
+     *                   CurrentFileSize} for each file seen so far.
      * @param earlyOften The {@link EarlyOften} score and intermediate data for this
      *                   student project
      */
-    public Feedback(String userId, Assignment assignment, Map<String, CurrentFileSize> fileSizes,
+    public Feedback(String id, String userId, Assignment assignment, Map<String, CurrentFileSize> fileSizes,
             EarlyOften earlyOften) {
+        this.id = id;
         this.userId = userId;
         this.assignment = assignment;
         this.fileSizes = fileSizes;
         this.earlyOften = earlyOften;
+    }
+
+    /**
+     * Initialises a project for the specifed student (user) on the given
+     * assignment. Current file sizes and early often are initialised with default
+     * values.
+     * 
+     * @param userId     The id of the user (TUSER.OID)
+     * @param assignment The {@link Assignment}
+     */
+    public Feedback(String userId, Assignment assignment) {
+        this.id = null;
+        this.userId = userId;
+        this.assignment = assignment;
+        this.fileSizes = new HashMap<String, CurrentFileSize>();
+        this.earlyOften = new EarlyOften();
     }
 
     /**
@@ -69,6 +87,20 @@ public class Feedback {
      */
     public Map<String, CurrentFileSize> getFileSizes() {
         return fileSizes;
+    }
+
+    /**
+     * @return the id
+     */
+    public String getId() {
+        return this.id;
+    }
+
+    /**
+     * @param id the id to set
+     */
+    public void setId(String id) {
+        this.id = id;
     }
 
     /**
