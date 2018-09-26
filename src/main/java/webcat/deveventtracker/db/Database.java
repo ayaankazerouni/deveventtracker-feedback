@@ -26,7 +26,7 @@ import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
  * Singleton class providing restricted access to the database.
  * 
  * @author Ayaan Kazerouni
- * @version 2018-09-24
+ * @version 2018-09-26
  */
 public class Database {
 
@@ -238,29 +238,31 @@ public class Database {
      * Assignment) unique key finds a match, this method will perform an update. If
      * not it will perform an insertion.
      * 
-     * This method updates the IncDevFeedbackForStudentProject table. 
+     * This method updates the IncDevFeedbackForStudentProject table.
      * 
      * @param feedback The Feedback record to be upserted.
-     * @return The id of the inserted or updated record. 
+     * @return The id of the inserted or updated record.
      */
     public String upsertFeedback(Feedback feedback) {
-        String query = "insert into IncDevFeedbackForStudentProject (assignmentOfferingId, userId, totalEdits, totalWeightedEdits, lastUpdatedAt, earlyOftenScore) "
+        String sql = "insert into IncDevFeedbackForStudentProject (assignmentOfferingId, userId, totalEdits, totalWeightedEdits, lastUpdatedAt, earlyOftenScore) "
                 + "values (?, ?, ?, ?, ?, ?) on duplicate key update "
                 + "totalEdits=values(totalEdits), totalWeightedEdits=values(totalWeightedEdits), earlyOftenScore=values(earlyOftenScore), lastUpdatedAt=values(lastUpdatedAt);";
         EarlyOften earlyOften = feedback.getEarlyOften();
-        try (PreparedStatement preparedStatement = this.connect.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement preparedStatement = this.connect.prepareStatement(sql,
+                Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setString(1, feedback.getAssignment().getAssignmentId());
             preparedStatement.setString(2, feedback.getUserId());
             preparedStatement.setInt(3, earlyOften.getTotalEdits());
             preparedStatement.setInt(4, earlyOften.getTotalWeightedEdits());
             preparedStatement.setTimestamp(5, new Timestamp(earlyOften.getLastUpdated()));
             preparedStatement.setBigDecimal(6, new BigDecimal(earlyOften.getScore()));
- 
-            int affectedRows = preparedStatement.executeUpdate();;
+
+            int affectedRows = preparedStatement.executeUpdate();
+            ;
             if (affectedRows == 0) {
                 throw new SQLException("Updating feedback failed.");
             }
-            
+
             try (ResultSet keys = preparedStatement.getGeneratedKeys()) {
                 if (keys.next()) {
                     return keys.getString(1);
@@ -272,6 +274,42 @@ public class Database {
             System.out.println("An error occured while updating the feedback object.");
             e.printStackTrace();
             return null;
+        }
+    }
+
+    /**
+     * Update or insert the specified file sizes for the specified feedback record.
+     * Note that there must be a record with id feedbackId in the
+     * IncDevFeedbackForStudentProject table, to satisfy the foreign key constraint.
+     * 
+     * @param fileSizes  The Map of current file sizes
+     * @param feedbackId An id that points to a single row in
+     *                   IncDevFeedbackForStudentProject
+     */
+    public void upsertFileSizes(Map<String, CurrentFileSize> fileSizes, String feedbackId) {
+        // Build update statement
+        StringBuilder sql = new StringBuilder(
+                "insert into FileSizeForStudentProject (feedbackId, name, `size`) values ");
+        for (int i = 0; i < fileSizes.size(); i++) {
+            sql.append("(" + feedbackId + ", ?, ?)");
+            if (i < fileSizes.size() - 1) {
+                sql.append(", ");
+            }
+        }
+        sql.append(" on duplicate key update `size`=values(`size`)");
+
+        try (PreparedStatement preparedStatement = this.connect.prepareStatement(sql.toString())) {
+            int i = 0;
+            for (CurrentFileSize f : fileSizes.values()) {
+                preparedStatement.setString(++i, f.getName());
+                preparedStatement.setInt(++i, f.getSize());
+            }
+            int affectedRows = preparedStatement.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Was not able to update any file sizes.");
+            }
+        } catch (SQLException e) {
+            System.out.println("An error occured while updating file sizes.");
         }
     }
 

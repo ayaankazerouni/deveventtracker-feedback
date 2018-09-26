@@ -12,7 +12,7 @@ import main.java.webcat.deveventtracker.db.Database;
  * database.
  * 
  * @author Ayaan Kazerouni
- * @version 2018-09-17
+ * @version 2018-09-25
  */
 public class Assignment {
 
@@ -73,8 +73,9 @@ public class Assignment {
                     feedback.getEarlyOften().getLastUpdated());
             feedback.updateEarlyOften(events);
             String id = db.upsertFeedback(feedback);
-            
-            // TODO: Update file sizes for feedback item
+            if (id != null) {
+                db.upsertFileSizes(feedback.getFileSizes(), feedback.getId());
+            }
         });
     }
 }

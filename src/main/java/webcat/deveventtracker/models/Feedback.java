@@ -8,8 +8,9 @@ import java.util.concurrent.TimeUnit;
 import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
 
 /**
- * Represents an assignment state for a given student. Maps to the
- * FeedbackForStudentProject object in the Web-CAT database.
+ * Represents an assignment state for a given student. Encapsulates current file
+ * sizes, the assignment offering for this project, and incremental development
+ * metrics.
  * 
  * @author Ayaan Kazerouni
  * @version 2018-09-13
@@ -26,6 +27,7 @@ public class Feedback {
      * Initialises a project for the specified student (user) on the given
      * assignment.
      * 
+     * @param id         The id of the Feedback Item
      * @param userId     The id of the user (TUSER.OID)
      * @param assignment The {@link Assignment}
      * @param fileSizes  The
