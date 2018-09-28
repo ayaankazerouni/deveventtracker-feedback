@@ -67,7 +67,7 @@ public class Assignment {
     public void updateEarlyOften() {
         Database db = Database.getInstance();
         List<String> studentIds = db.getUsersWithSensorData(this);
-        studentIds.parallelStream().forEach(s -> {
+        studentIds.stream().forEach(s -> {
             Feedback feedback = db.getFeedback(s, this);
             List<SensorData> events = db.getNewEventsForStudentOnAssignment(feedback,
                     feedback.getEarlyOften().getLastUpdated());
