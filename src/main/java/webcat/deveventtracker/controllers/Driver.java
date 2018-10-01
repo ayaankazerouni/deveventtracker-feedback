@@ -3,6 +3,9 @@
  */
 package main.java.webcat.deveventtracker.controllers;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * Queries the Web-CAT DB for sensordata and populates a "drop-off point" with
  * incremental development feedback.
@@ -14,7 +17,9 @@ package main.java.webcat.deveventtracker.controllers;
  * @version 2018-09-13
  */
 public class Driver {
-
+    
+    private final static Logger log = LogManager.getLogger();
+    
     /**
      * Entry point for the application. Calculates incremental development feedback
      * for the specified assignment.
@@ -23,6 +28,7 @@ public class Driver {
      *             TASSIGNMENTOFFERING table
      */
     public static void main(String[] args) {
+        log.info("Initialised with params " + String.join(", ", args) + ".");
         ApplicationController controller = new ApplicationController(args);
         controller.run();
     }

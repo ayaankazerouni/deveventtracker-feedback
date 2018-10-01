@@ -35,6 +35,6 @@ public class EarlyOftenTest {
 	@DisplayName("update; simple test")
 	public void testSimple() {
 		this.earlyOften.update(this.batchProcessed);
-		assertEquals(3, this.earlyOften.getScore());
+		assertEquals(new Double(3), this.earlyOften.getScore());
 	}
 }

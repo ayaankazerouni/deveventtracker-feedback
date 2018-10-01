@@ -14,16 +14,16 @@ import java.util.Map;
  */
 public class EarlyOften {
     private String id;
-    private double score;
+    private Double score;
     private int totalEdits;
     private int totalWeightedEdits;
     private long lastUpdated;
 
     /**
-     * Initialises an EarlyOften object, with 0 edits.
+     * Initialises an EarlyOften object, with 0 edits and null score.
      */
     public EarlyOften() {
-        this(0, 0, Double.MAX_VALUE, 0);
+        this(0, 0, null, 0);
     }
 
     /**
@@ -38,7 +38,7 @@ public class EarlyOften {
      * @param lastUpdated        The timestamp for the most recent event seen, in
      *                           milliseconds
      */
-    public EarlyOften(int totalEdits, int totalWeightedEdits, double score, long lastUpdated) {
+    public EarlyOften(int totalEdits, int totalWeightedEdits, Double score, long lastUpdated) {
         this.totalEdits = totalEdits;
         this.totalWeightedEdits = totalWeightedEdits;
         this.score = score;
@@ -62,7 +62,7 @@ public class EarlyOften {
     /**
      * @return the score
      */
-    public double getScore() {
+    public Double getScore() {
         return this.score;
     }
 
@@ -139,9 +139,8 @@ public class EarlyOften {
         // Calculate new early often score
         this.score = (double) this.totalWeightedEdits / this.totalEdits;
     }
-
-    /**
-     * Get the current early often score for the given student on the given
-     * assignment
-     */
+    
+    public String toString() {
+        return "EarlyOften: [totalEdits: " + this.totalEdits + ", totalWeightedEdits: " + this.totalWeightedEdits + ", score: " + this.score + "]";
+    }
 }

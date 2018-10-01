@@ -58,4 +58,8 @@ public class CurrentFileSize {
     public boolean isDirty() {
         return this.dirty;
     }
+    
+    public String toString() {
+        return "CurrentFileSize: [name: " + this.name + ", size: " + this.size + "]";
+    }
 }

@@ -79,12 +79,16 @@ public class Assignment {
                         feedback.getEarlyOften().getLastUpdated());
                 feedback.updateEarlyOften(events);
                 String id = db.upsertFeedback(feedback);
-                if (id != null) {
-                    db.upsertFileSizes(feedback.getFileSizes(), feedback.getId());
-                }
+                if (id != null) { feedback.setId(id); }
+                db.upsertFileSizes(feedback);
             } else {
                 log.debug("Couldn't get feedback for student %s", s);
             }
         });
+    }
+    
+    @Override
+    public String toString() {
+        return "Assignment: " + this.assignmentId + "[ deadline: " + this.deadline + "]";
     }
 }
