@@ -16,6 +16,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import main.java.webcat.deveventtracker.models.Assignment;
 import main.java.webcat.deveventtracker.models.CurrentFileSize;
 import main.java.webcat.deveventtracker.models.Feedback;
@@ -34,6 +37,8 @@ public class Database {
      * The singleton instance
      */
     private static Database theInstance;
+
+    private static final Logger log = LogManager.getLogger();
 
     private Connection connect;
 
@@ -58,7 +63,7 @@ public class Database {
             try {
                 theInstance = new Database();
             } catch (SQLException e) {
-                System.out.println("An error occurred while getting the MySQL connection:\n" + e.getMessage());
+                log.error("An error occurred while getting the MySQL connection.", e);
             }
         }
 
@@ -96,7 +101,8 @@ public class Database {
                 events.add(event);
             }
         } catch (SQLException e) {
-            System.out.println("An exception occured while retrieving SensorData.");
+            log.error("An exception occured while retrieving SensorData for project " + project.getId() + " after time "
+                    + afterTime + ".", e);
             return null;
         } finally {
             this.close(result);
@@ -147,7 +153,12 @@ public class Database {
                 throw new IllegalArgumentException("Couldn't find any assignment offerings with specified ids.");
             }
         } catch (SQLException e) {
-            System.out.println("An exception occured while retrieving the assigment.");
+            String msg = "An exception occured while retrieving assigments with ids in [";
+            for (String id : assignmentOfferingIds) {
+                msg += id;
+            }
+            msg += "].";
+            log.error(msg, e);
             return null;
         } finally {
             this.close(result);
@@ -178,7 +189,8 @@ public class Database {
                 users.add(result.getString(1));
             }
         } catch (SQLException e) {
-            System.out.println("An error occured while retrieving users with SensorData.");
+            log.error("An error occured while retrieving users with SensorData for assignment offering "
+                    + assignment.getAssignmentId() + ".", e);
             e.printStackTrace();
         } finally {
             this.close(result);
@@ -197,7 +209,7 @@ public class Database {
      */
     public Feedback getFeedback(String userId, Assignment assignment) {
         String query = "select FileSizeForStudentProject.name as className, FileSizeForStudentProject.size as currentSize, "
-                + "IncDevFeedbackFromStudentProject.* "
+                + "IncDevFeedbackForStudentProject.* "
                 + "from IncDevFeedbackForStudentProject, FileSizeForStudentProject "
                 + "where FileSizeForStudentProject.feedbackId = IncDevFeedbackForStudentProject.id "
                 + "and IncDevFeedbackForStudentProject.userId = ? and IncDevFeedbackForStudentProject.assignmentOfferingId = ?";
@@ -226,7 +238,8 @@ public class Database {
             }
 
         } catch (SQLException e) {
-            System.out.println("An error occurred while retrieving the feedback object.");
+            log.error("There was an error while retrieving the Feedback for user " + userId + " on assignment offering "
+                    + assignment.getAssignmentId() + ".", e);
             return null;
         } finally {
             this.close(result);
@@ -271,8 +284,7 @@ public class Database {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("An error occured while updating the feedback object.");
-            e.printStackTrace();
+            log.error("There was an error while updating the Feedback with id " + feedback.getId() + ".", e);
             return null;
         }
     }
@@ -309,7 +321,7 @@ public class Database {
                 throw new SQLException("Was not able to update any file sizes.");
             }
         } catch (SQLException e) {
-            System.out.println("An error occured while updating file sizes.");
+            log.error("There was an error while updating file sizes for Feedback " + feedbackId + ".");
         }
     }
 
@@ -319,7 +331,7 @@ public class Database {
                 result.close();
             }
         } catch (SQLException e) {
-            System.out.println("An error occured while closing resources.");
+            log.error("An error occured while closing resources.");
         }
     }
 }
