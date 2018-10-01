@@ -1,10 +1,10 @@
 [![Build Status](https://travis-ci.org/ayaankazerouni/inc-dev-feedback.svg?branch=master)](https://travis-ci.org/ayaankazerouni/inc-dev-feedback)
 
-# inc-dev-feedback
+# deveventtracker-feedback
 
 Incremental development feedback provider for Web-CAT projects that collect Sensordata.
 
-[Documentation](https://ayaankazerouni.github.io/inc-dev-feedback)
+[Documentation](https://travis-ci.org/ayaankazerouni/deveventtracker-feedback.svg?branch=master)
 
 This package will query and modify the Web-CAT database itself, placing incremental development feedback where they can be delivered during score reporting.
 
