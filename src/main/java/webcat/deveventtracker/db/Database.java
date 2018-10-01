@@ -16,6 +16,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import main.java.webcat.deveventtracker.models.Assignment;
 import main.java.webcat.deveventtracker.models.CurrentFileSize;
 import main.java.webcat.deveventtracker.models.Feedback;
@@ -34,6 +37,8 @@ public class Database {
      * The singleton instance
      */
     private static Database theInstance;
+
+    private static final Logger log = LogManager.getLogger();
 
     private Connection connect;
 
@@ -58,7 +63,7 @@ public class Database {
             try {
                 theInstance = new Database();
             } catch (SQLException e) {
-                System.out.println("An error occurred while getting the MySQL connection:\n" + e.getMessage());
+                log.error("An error occurred while getting the MySQL connection.", e);
             }
         }
 
@@ -70,33 +75,37 @@ public class Database {
      * specified assignment. "New" events are those that come after the given
      * {@code afterTime}.
      * 
-     * @param project   The {@link Feedback} for which we want new events
+     * @param feedback  The {@link Feedback} for which we want new events
      * @param afterTime A time stamp in milliseconds
-     * @return An array of {@link SensorData} events
+     * @return A List of {@link SensorData} events
      */
-    public List<SensorData> getNewEventsForStudentOnAssignment(Feedback project, long afterTime) {
+    public List<SensorData> getNewEventsForStudentOnAssignment(Feedback feedback, long afterTime) {
         List<SensorData> events = new ArrayList<SensorData>();
         ResultSet result = null;
-        String sdQuery = "select sensordata.`time`, sensordataproperty.value as 'className', sensordata.currentSize as currentSize"
+        String sdQuery = "select sensordata.`time`, sensordataproperty.`value` as 'className', sensordata.currentSize as currentSize "
                 + "from sensordata, sensordataproperty, studentproject, studentprojectforassignment, projectforassignment, tassignmentoffering "
-                + "where sensordata.projectId = StudentProject.OID " + "and sensordataproperty.name = 'Class-Name' "
+                + "where sensordata.projectId = studentproject.OID and sensordataproperty.name = 'Class-Name' "
                 + "and sensordataproperty.sensorDataId = sensordata.OID "
                 + "and studentproject.OID = studentprojectforassignment.studentProjectId "
                 + "and studentprojectforassignment.projectForAssignmentId = projectforassignment.OID "
                 + "and projectforassignment.assignmentOfferingId = tassignmentoffering.OID "
-                + "and sensordata.userId = ? " + "and tassignmentoffering.OID = ? " + "and SensorData.`time` >= ?;";
+                + "and sensordata.userId = ? " + "and tassignmentoffering.OID = ? " + "and sensordata.`time` >= ?;";
         try (PreparedStatement preparedStatement = this.connect.prepareStatement(sdQuery)) {
-            preparedStatement.setString(1, project.getUserId());
-            preparedStatement.setString(2, project.getAssignment().getAssignmentId());
+            preparedStatement.setString(1, feedback.getUserId());
+            preparedStatement.setString(2, feedback.getAssignment().getAssignmentId());
             preparedStatement.setTimestamp(3, new Timestamp(afterTime));
             result = preparedStatement.executeQuery();
             while (result.next()) {
-                SensorData event = new SensorData(result.getLong("time"), result.getInt("currentSize"),
-                        result.getString("className"));
-                events.add(event);
+                long time = result.getTimestamp("time").getTime();
+                String name = result.getString("className");
+                if (name != null) {
+                    SensorData event = new SensorData(time, result.getInt("currentSize"), name);
+                    events.add(event);
+                }
             }
         } catch (SQLException e) {
-            System.out.println("An exception occured while retrieving SensorData.");
+            String message = "An exception occured while retrieving SensorData for " + feedback;
+            log.error(message, e);
             return null;
         } finally {
             this.close(result);
@@ -108,7 +117,7 @@ public class Database {
      * Get the specified TASSIGNMENTOFFERINGs from Web-CAT.
      * 
      * @param assignmentOfferingIds A list of TASSIGNMENTOFFERING.OID values
-     * @return A list of {@link Assignment} objects
+     * @return A list of {@link Assignment} objects.
      * @throws IllegalArgumentException if there are no assignments offering with
      *                                  the specified id.
      */
@@ -144,10 +153,16 @@ public class Database {
 
                 return assignments;
             } else {
-                throw new IllegalArgumentException("Couldn't find any assignment offerings with specified ids.");
+                log.error("Couldn't find any assignment offerings with specified ids.");
+                return new ArrayList<Assignment>();
             }
         } catch (SQLException e) {
-            System.out.println("An exception occured while retrieving the assigment.");
+            String msg = "An exception occured while retrieving assigments with ids [";
+            for (String id : assignmentOfferingIds) {
+                msg += id;
+            }
+            msg += "].";
+            log.error(msg, e);
             return null;
         } finally {
             this.close(result);
@@ -178,8 +193,7 @@ public class Database {
                 users.add(result.getString(1));
             }
         } catch (SQLException e) {
-            System.out.println("An error occured while retrieving users with SensorData.");
-            e.printStackTrace();
+            log.error("An error occured while retrieving users with SensorData for " + assignment, e);
         } finally {
             this.close(result);
         }
@@ -197,7 +211,7 @@ public class Database {
      */
     public Feedback getFeedback(String userId, Assignment assignment) {
         String query = "select FileSizeForStudentProject.name as className, FileSizeForStudentProject.size as currentSize, "
-                + "IncDevFeedbackFromStudentProject.* "
+                + "IncDevFeedbackForStudentProject.* "
                 + "from IncDevFeedbackForStudentProject, FileSizeForStudentProject "
                 + "where FileSizeForStudentProject.feedbackId = IncDevFeedbackForStudentProject.id "
                 + "and IncDevFeedbackForStudentProject.userId = ? and IncDevFeedbackForStudentProject.assignmentOfferingId = ?";
@@ -226,7 +240,7 @@ public class Database {
             }
 
         } catch (SQLException e) {
-            System.out.println("An error occurred while retrieving the feedback object.");
+            log.error("Error while retrieving the Feedback for user " + userId + " on " + assignment);
             return null;
         } finally {
             this.close(result);
@@ -241,7 +255,7 @@ public class Database {
      * This method updates the IncDevFeedbackForStudentProject table.
      * 
      * @param feedback The Feedback record to be upserted.
-     * @return The id of the inserted or updated record.
+     * @return The id of the record if it was a new one inserted.
      */
     public String upsertFeedback(Feedback feedback) {
         String sql = "insert into IncDevFeedbackForStudentProject (assignmentOfferingId, userId, totalEdits, totalWeightedEdits, lastUpdatedAt, earlyOftenScore) "
@@ -255,7 +269,12 @@ public class Database {
             preparedStatement.setInt(3, earlyOften.getTotalEdits());
             preparedStatement.setInt(4, earlyOften.getTotalWeightedEdits());
             preparedStatement.setTimestamp(5, new Timestamp(earlyOften.getLastUpdated()));
-            preparedStatement.setBigDecimal(6, new BigDecimal(earlyOften.getScore()));
+            Double score = earlyOften.getScore();
+            if (Double.isNaN(score)) {
+                preparedStatement.setString(6, null);
+            } else {
+                preparedStatement.setBigDecimal(6, new BigDecimal(score));
+            }
 
             int affectedRows = preparedStatement.executeUpdate();
             ;
@@ -264,15 +283,15 @@ public class Database {
             }
 
             try (ResultSet keys = preparedStatement.getGeneratedKeys()) {
-                if (keys.next()) {
+                if (keys.first()) {
                     return keys.getString(1);
                 } else {
-                    throw new SQLException("Could not get ID of updated feedback.");
+                    log.info(feedback + " did not need an update.");
+                    return null;
                 }
             }
         } catch (SQLException e) {
-            System.out.println("An error occured while updating the feedback object.");
-            e.printStackTrace();
+            log.error("Error while updating " + feedback, e);
             return null;
         }
     }
@@ -282,14 +301,19 @@ public class Database {
      * Note that there must be a record with id feedbackId in the
      * IncDevFeedbackForStudentProject table, to satisfy the foreign key constraint.
      * 
-     * @param fileSizes  The Map of current file sizes
-     * @param feedbackId An id that points to a single row in
-     *                   IncDevFeedbackForStudentProject
+     * @param feedback A {@link Feedback} record
      */
-    public void upsertFileSizes(Map<String, CurrentFileSize> fileSizes, String feedbackId) {
+    public void upsertFileSizes(Feedback feedback) {
+        if (feedback.getFileSizes().isEmpty()) {
+            log.info("No file sizes to update for " + feedback);
+            return;
+        }
+
         // Build update statement
         StringBuilder sql = new StringBuilder(
                 "insert into FileSizeForStudentProject (feedbackId, name, `size`) values ");
+        Map<String, CurrentFileSize> fileSizes = feedback.getFileSizes();
+        String feedbackId = feedback.getId();
         for (int i = 0; i < fileSizes.size(); i++) {
             sql.append("(" + feedbackId + ", ?, ?)");
             if (i < fileSizes.size() - 1) {
@@ -309,7 +333,8 @@ public class Database {
                 throw new SQLException("Was not able to update any file sizes.");
             }
         } catch (SQLException e) {
-            System.out.println("An error occured while updating file sizes.");
+            log.error("Error while updating file sizes for " + feedback + ". FileSizes:\n"
+                    + feedback.getFileSizeInformation(), e);
         }
     }
 
@@ -319,7 +344,7 @@ public class Database {
                 result.close();
             }
         } catch (SQLException e) {
-            System.out.println("An error occured while closing resources.");
+            log.error("Error while closing resources.", e);
         }
     }
 }
