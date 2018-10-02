@@ -51,8 +51,8 @@ public class Database {
             String dbUrl = System.getProperty("mysql.url");
             this.connect = DriverManager.getConnection("jdbc:mysql://" + dbUrl + "?" + "user=" + user + "&"
                     + "password=" + pw + "&" + "serverTimezone=UTC");
-        } catch (Exception e) {
-            log.error("Could not establish database connection.", e);
+        } catch (ClassNotFoundException e) {
+            log.error("Could not load JDBC Driver.", e);
         }
     }
 
