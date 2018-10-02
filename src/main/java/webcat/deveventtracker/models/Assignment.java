@@ -89,6 +89,6 @@ public class Assignment {
     
     @Override
     public String toString() {
-        return "Assignment: " + this.assignmentId + "[ deadline: " + this.deadline + "]";
+        return "Assignment:" + this.assignmentId + " [deadline: " + this.deadline + "]";
     }
 }

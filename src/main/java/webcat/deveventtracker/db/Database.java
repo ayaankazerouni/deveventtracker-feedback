@@ -48,10 +48,11 @@ public class Database {
 
             String user = System.getProperty("mysql.user");
             String pw = System.getProperty("mysql.pw");
-            this.connect = DriverManager.getConnection("jdbc:mysql://localhost/web-cat-dev?" + "user=" + user + "&"
+            String dbUrl = System.getProperty("mysql.url");
+            this.connect = DriverManager.getConnection("jdbc:mysql://" + dbUrl + "?" + "user=" + user + "&"
                     + "password=" + pw + "&" + "serverTimezone=UTC");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Could not establish database connection.", e);
         }
     }
 
@@ -223,8 +224,14 @@ public class Database {
             Map<String, CurrentFileSize> fileSizes = new HashMap<String, CurrentFileSize>();
             if (result.first()) {
                 // The early often score will be replicated for each file entry
+                long lastUpdatedAt = result.getTimestamp("lastUpdatedAt").getTime();
+                Double score = result.getDouble("earlyOftenScore");
+                if (result.wasNull()) {
+                    // The score could be a NaN if there haven't been any edits yet
+                    score = null;
+                }
                 EarlyOften earlyOften = new EarlyOften(result.getInt("totalEdits"), result.getInt("totalWeightedEdits"),
-                        result.getDouble("earlyOftenScore"), result.getLong("lastUpdated"));
+                        score, lastUpdatedAt);
                 String feedbackId = result.getString("id");
                 do {
                     // We moved to the first one already, so read it before moving the cursor
@@ -240,7 +247,7 @@ public class Database {
             }
 
         } catch (SQLException e) {
-            log.error("Error while retrieving the Feedback for user " + userId + " on " + assignment);
+            log.error("Error while retrieving the Feedback for user " + userId + " on " + assignment, e);
             return null;
         } finally {
             this.close(result);
