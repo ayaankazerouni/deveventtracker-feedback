@@ -29,7 +29,7 @@ import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
  * Singleton class providing restricted access to the database.
  * 
  * @author Ayaan Kazerouni
- * @version 2018-09-26
+ * @version 2018-10-03
  */
 public class Database {
 
@@ -48,10 +48,11 @@ public class Database {
 
             String user = System.getProperty("mysql.user");
             String pw = System.getProperty("mysql.pw");
-            this.connect = DriverManager.getConnection("jdbc:mysql://localhost/web-cat-dev?" + "user=" + user + "&"
+            String dbUrl = System.getProperty("mysql.url");
+            this.connect = DriverManager.getConnection("jdbc:mysql://" + dbUrl + "?" + "user=" + user + "&"
                     + "password=" + pw + "&" + "serverTimezone=UTC");
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            log.error("Could not load JDBC Driver.", e);
         }
     }
 
@@ -205,9 +206,12 @@ public class Database {
      * Gets a {@link Feedback} for the specified user on the given
      * {@link Assignment}. If one does not exist, a new one is created and returned.
      * 
+     * If a SQLException occurs, returns null
+     * 
      * @param userId     The OID of the specified user
      * @param assignment The specified assignment
-     * @return Feedback for the student on the assignment
+     * @return Feedback for the student on the assignment, or null if a database
+     *         error occurred
      */
     public Feedback getFeedback(String userId, Assignment assignment) {
         String query = "select FileSizeForStudentProject.name as className, FileSizeForStudentProject.size as currentSize, "
@@ -223,8 +227,14 @@ public class Database {
             Map<String, CurrentFileSize> fileSizes = new HashMap<String, CurrentFileSize>();
             if (result.first()) {
                 // The early often score will be replicated for each file entry
+                long lastUpdatedAt = result.getTimestamp("lastUpdatedAt").getTime();
+                Double score = result.getDouble("earlyOftenScore");
+                if (result.wasNull()) {
+                    // The score could be a NaN if there haven't been any edits yet
+                    score = null;
+                }
                 EarlyOften earlyOften = new EarlyOften(result.getInt("totalEdits"), result.getInt("totalWeightedEdits"),
-                        result.getDouble("earlyOftenScore"), result.getLong("lastUpdated"));
+                        score, lastUpdatedAt);
                 String feedbackId = result.getString("id");
                 do {
                     // We moved to the first one already, so read it before moving the cursor
@@ -240,7 +250,7 @@ public class Database {
             }
 
         } catch (SQLException e) {
-            log.error("Error while retrieving the Feedback for user " + userId + " on " + assignment);
+            log.error("Error while retrieving the Feedback for user " + userId + " on " + assignment, e);
             return null;
         } finally {
             this.close(result);

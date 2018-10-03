@@ -2,9 +2,8 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>inc-dev-feedback</groupId>
-	<artifactId>inc-dev-feedback</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<groupId>deveventtracker-feedback</groupId>
+	<artifactId>deveventtracker-feedback</artifactId>
 	<name>inc-dev-feedback</name>
 	<description>Java package to provide feedback on the programming process based on data from Web-CAT.</description>
 	<build>
@@ -56,4 +55,6 @@
 			<version>2.11.1</version>
 		</dependency>
 	</dependencies>
+	<version>1.0.0</version>
+	<url>https://github.com/ayaankazeroui/deveventtracker-feedback</url>
 </project>

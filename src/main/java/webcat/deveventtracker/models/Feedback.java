@@ -167,24 +167,29 @@ public class Feedback {
     public void updateEarlyOften(List<SensorData> events) {
         this.earlyOften.update(this.processBatch(events));
     }
-    
+
+    /**
+     * @return a string representation of all the {@link CurrentFileSize}s belonging
+     *         to this Feedback
+     */
     public String getFileSizeInformation() {
         String rep = "";
         for (CurrentFileSize current : this.fileSizes.values()) {
             rep += current + "\n";
         }
-        
+
         return rep;
     }
-    
+
     @Override
     public String toString() {
         String rep = "Feedback:";
-        String userProject = " [user " + this.userId + ", assignmentOffering: " + this.assignment.getAssignmentId() + "]";
+        String userProject = " [user " + this.userId + ", assignmentOffering: " + this.assignment.getAssignmentId()
+                + "]";
         if (this.id != null) {
             rep += this.id;
         }
-        
+
         return rep + userProject + " " + this.earlyOften;
     }
 }
