@@ -29,7 +29,7 @@ import main.java.webcat.deveventtracker.models.metrics.EarlyOften;
  * Singleton class providing restricted access to the database.
  * 
  * @author Ayaan Kazerouni
- * @version 2018-09-26
+ * @version 2018-10-03
  */
 public class Database {
 
@@ -206,9 +206,12 @@ public class Database {
      * Gets a {@link Feedback} for the specified user on the given
      * {@link Assignment}. If one does not exist, a new one is created and returned.
      * 
+     * If a SQLException occurs, returns null
+     * 
      * @param userId     The OID of the specified user
      * @param assignment The specified assignment
-     * @return Feedback for the student on the assignment
+     * @return Feedback for the student on the assignment, or null if a database
+     *         error occurred
      */
     public Feedback getFeedback(String userId, Assignment assignment) {
         String query = "select FileSizeForStudentProject.name as className, FileSizeForStudentProject.size as currentSize, "

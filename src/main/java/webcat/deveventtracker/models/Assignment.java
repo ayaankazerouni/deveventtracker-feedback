@@ -73,6 +73,7 @@ public class Assignment {
         Database db = Database.getInstance();
         List<String> studentIds = db.getUsersWithSensorData(this);
         studentIds.stream().forEach(s -> {
+            log.info("Calculating for student %s", s);
             Feedback feedback = db.getFeedback(s, this);
             if (feedback != null) {
                 List<SensorData> events = db.getNewEventsForStudentOnAssignment(feedback,
@@ -81,8 +82,6 @@ public class Assignment {
                 String id = db.upsertFeedback(feedback);
                 if (id != null) { feedback.setId(id); }
                 db.upsertFileSizes(feedback);
-            } else {
-                log.debug("Couldn't get feedback for student %s", s);
             }
         });
     }
