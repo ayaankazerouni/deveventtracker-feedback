@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/ayaankazerouni/inc-dev-feedback.svg?branch=master)](https://travis-ci.org/ayaankazerouni/inc-dev-feedback)
+[![Build Status](https://travis-ci.org/ayaankazerouni/deveventtracker-feedback.svg?branch=master)](https://travis-ci.org/ayaankazerouni/deveventtracker-feedback)
 
 # deveventtracker-feedback
 
