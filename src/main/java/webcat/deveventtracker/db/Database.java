@@ -296,7 +296,7 @@ public class Database {
                 if (keys.first()) {
                     return keys.getString(1);
                 } else {
-                    log.info(feedback + " did not need an update.");
+                    // No updated needed
                     return null;
                 }
             }
@@ -315,7 +315,7 @@ public class Database {
      */
     public void upsertFileSizes(Feedback feedback) {
         if (feedback.getFileSizes().isEmpty()) {
-            log.info("No file sizes to update for " + feedback);
+            // No file sizes to update for this feedback
             return;
         }
 

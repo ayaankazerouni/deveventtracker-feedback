@@ -19,7 +19,6 @@
 	<Loggers>
 		<Root level="info">
 			<AppenderRef ref="RollingFile" level="ERROR" />
-			<AppenderRef ref="Console" level="INFO" />
 		</Root>
 	</Loggers>
 </Configuration>
